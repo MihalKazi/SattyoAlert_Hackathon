@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+🌐 SattyoAlert – Real-Time Fact-Checking & Misinformation Alert System
 
-## Getting Started
+Live Demo: https://sattyoalertdemo.netlify.app/
 
-First, run the development server:
+SattyoAlert is a real-time misinformation detection and fact-verification web platform built for fast, reliable, and accessible truth-checking during social, political, and emergency situations.
 
-```bash
+It provides a structured framework for reviewing claims, verifying sources, and delivering authenticated fact-checks to the public.
+
+🚀 Features
+✔ Fast Real-Time Fact Checking
+
+Users can submit claims; the system provides structured fact-checks based on verified data.
+
+✔ Disinformation & Fake News Alerts
+
+Provides alerts for identified misinformation trends.
+
+✔ Clean and Accessible UI
+
+Simple, mobile-friendly interface optimized for general users.
+
+✔ Firebase Integration
+
+Secure backend structure (Firestore/Auth ready).
+
+✔ Modular Component Structure
+
+Easily extendable sections for fact-checks, forms, UI components, and notification modules.
+
+🛠️ Tech Stack
+Layer	Technology
+Frontend	Next.js 14, React, TailwindCSS
+Backend	Firebase (Firestore, Auth)
+Deployment	Netlify / Vercel
+Tools	ESLint, PostCSS, Node.js
+📁 Folder Structure
+sattyoalert-full/
+│
+├── public/                 # Static assets
+│
+├── src/
+│   ├── app/                # App router pages
+│   ├── components/         # Reusable UI components
+│   ├── lib/                # Firebase config + utils
+│   └── data/               # Static data
+│
+├── package.json
+├── next.config.js
+├── tailwind.config.js
+├── .gitignore
+└── README.md
+
+⚙️ Installation & Setup
+1. Clone the repository
+git clone https://github.com/MihalKazi/SattyoAlert_Hackathon.git
+cd SattyoAlert_Hackathon
+
+2. Install dependencies
+npm install
+
+3. Add Firebase config
+
+Create:
+
+src/lib/firebase/config.js
+
+
+Add your Firebase credentials:
+
+export const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+4. Run the project
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Your project will run at:
+👉 http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔥 Deployment
+Netlify
 
-## Learn More
+Just drag-and-drop or connect GitHub → auto deploy.
 
-To learn more about Next.js, take a look at the following resources:
+Vercel (Recommended for Next.js)
+vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🧩 Roadmap (Future Enhancements)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🔍 AI-powered automated fact-check ranking
 
-## Deploy on Vercel
+📰 Real-time misinformation tracking dashboard
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+📢 Verified journalist/admin panel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🚨 Push notifications for important alerts
+
+🗃️ Fact-check archive with categories & tags
+
+👨‍💻 Author
+
+Kazi Rohanuzzaman Mehal 
+Microsoft Learn Student Ambassador, Bangladesh
+
+📜 License
+
+This project is open-source and free to use for educational or developmental purposes.
