@@ -122,8 +122,7 @@ vercel
 
 ## 👨‍💻 Author
 
-**Kazi Rohanuzzaman Mehal- **
-**Microsoft Learn Student Ambassador, Bangladesh**
+**Kazi Rohanuzzaman Mehal- Microsoft Learn Student Ambassador, Bangladesh**
 
 ---
 
