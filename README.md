@@ -123,7 +123,7 @@ vercel
 ## 👨‍💻 Author
 
 **Kazi Rohanuzzaman Mehal (Mehal Kazi)**
-Microsoft Learn Student Ambassador, Bangladesh
+**Microsoft Learn Student Ambassador, Bangladesh**
 
 ---
 
