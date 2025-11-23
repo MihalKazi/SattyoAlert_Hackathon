@@ -1,113 +1,132 @@
-🌐 SattyoAlert – Real-Time Fact-Checking & Misinformation Alert System
+# 🌐 SattyoAlert – Real-Time Fact-Checking & Misinformation Alert System
 
-Live Demo: https://sattyoalertdemo.netlify.app/
+[![Demo](https://img.shields.io/badge/Demo-Live-brightgreen)](https://sattyoalertdemo.netlify.app/)
+[![License](https://img.shields.io/badge/License-MIT-blue)]()
 
-SattyoAlert is a real-time misinformation detection and fact-verification web platform built for fast, reliable, and accessible truth-checking during social, political, and emergency situations.
+SattyoAlert is a **real-time misinformation detection and fact-verification platform** built to combat fake news and provide accurate information quickly. It is designed for social, political, and emergency situations where fast fact-checking is essential.
 
-It provides a structured framework for reviewing claims, verifying sources, and delivering authenticated fact-checks to the public.
+---
 
-🚀 Features
-✔ Fast Real-Time Fact Checking
+## 🚀 Features
 
-Users can submit claims; the system provides structured fact-checks based on verified data.
+* ✅ **Fast Real-Time Fact Checking** – Submit claims and get verified results.
+* ✅ **Disinformation Alerts** – Detect trending misinformation.
+* ✅ **Clean, Mobile-Friendly UI** – Accessible interface for all users.
+* ✅ **Modular Component Architecture** – Reusable React components for UI, forms, notifications, and fact-checks.
+* ✅ **Firebase Backend** – Secure Firestore and Authentication setup.
 
-✔ Disinformation & Fake News Alerts
+---
 
-Provides alerts for identified misinformation trends.
+## 🛠️ Tech Stack
 
-✔ Clean and Accessible UI
+| Layer      | Technology                     |
+| ---------- | ------------------------------ |
+| Frontend   | Next.js 14, React, TailwindCSS |
+| Backend    | Firebase (Firestore, Auth)     |
+| Deployment | Netlify / Vercel               |
+| Tools      | ESLint, PostCSS, Node.js       |
 
-Simple, mobile-friendly interface optimized for general users.
+---
 
-✔ Firebase Integration
+## 📁 Project Structure
 
-Secure backend structure (Firestore/Auth ready).
-
-✔ Modular Component Structure
-
-Easily extendable sections for fact-checks, forms, UI components, and notification modules.
-
-🛠️ Tech Stack
-Layer	Technology
-Frontend	Next.js 14, React, TailwindCSS
-Backend	Firebase (Firestore, Auth)
-Deployment	Netlify / Vercel
-Tools	ESLint, PostCSS, Node.js
-📁 Folder Structure
+```
 sattyoalert-full/
 │
 ├── public/                 # Static assets
-│
 ├── src/
-│   ├── app/                # App router pages
+│   ├── app/                # Next.js App router pages
 │   ├── components/         # Reusable UI components
 │   ├── lib/                # Firebase config + utils
 │   └── data/               # Static data
-│
 ├── package.json
 ├── next.config.js
 ├── tailwind.config.js
 ├── .gitignore
 └── README.md
+```
 
-⚙️ Installation & Setup
-1. Clone the repository
+---
+
+## ⚙️ Installation & Setup
+
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/MihalKazi/SattyoAlert_Hackathon.git
 cd SattyoAlert_Hackathon
+```
 
-2. Install dependencies
+### 2. Install dependencies
+
+```bash
 npm install
+```
 
-3. Add Firebase config
+### 3. Add Firebase config
 
-Create:
+Create `src/lib/firebase/config.js` and add your Firebase credentials:
 
-src/lib/firebase/config.js
-
-
-Add your Firebase credentials:
-
+```javascript
 export const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "<YOUR_API_KEY>",
+  authDomain: "<YOUR_AUTH_DOMAIN>",
+  projectId: "<YOUR_PROJECT_ID>",
+  storageBucket: "<YOUR_STORAGE_BUCKET>",
+  messagingSenderId: "<YOUR_MESSAGING_SENDER_ID>",
+  appId: "<YOUR_APP_ID>"
 };
+```
 
-4. Run the project
+### 4. Run the development server
+
+```bash
 npm run dev
+```
 
+Visit: [http://localhost:3000](http://localhost:3000)
 
-Your project will run at:
-👉 http://localhost:3000
+---
 
-🔥 Deployment
-Netlify
+## 🌐 Live Demo
 
-Just drag-and-drop or connect GitHub → auto deploy.
+Check out the live version here:
+[https://sattyoalertdemo.netlify.app/](https://sattyoalertdemo.netlify.app/)
 
-Vercel (Recommended for Next.js)
+---
+
+## 🔧 Deployment
+
+### Netlify
+
+1. Connect GitHub repo to Netlify.
+2. Auto-deploy on push to `main`.
+
+### Vercel (Recommended for Next.js)
+
+```bash
 vercel
+```
 
-🧩 Roadmap (Future Enhancements)
+---
 
-🔍 AI-powered automated fact-check ranking
+## 🧩 Future Roadmap
 
-📰 Real-time misinformation tracking dashboard
+* 🔍 AI-powered automated fact-check ranking
+* 📰 Real-time misinformation tracking dashboard
+* 📢 Admin panel for verified journalists
+* 🚨 Push notifications for important alerts
+* 🗃️ Fact-check archive with categories & tags
 
-📢 Verified journalist/admin panel
+---
 
-🚨 Push notifications for important alerts
+## 👨‍💻 Author
 
-🗃️ Fact-check archive with categories & tags
-
-👨‍💻 Author
-
-Kazi Rohanuzzaman Mehal 
+**Kazi Rohanuzzaman Mehal (Mehal Kazi)**
 Microsoft Learn Student Ambassador, Bangladesh
 
-📜 License
+---
 
-This project is open-source and free to use for educational or developmental purposes.
+## 📜 License
+
+This project is **open-source** under the [MIT License](https://opensource.org/licenses/MIT).
