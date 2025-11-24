@@ -38,8 +38,6 @@ pnpm-debug.log*
 # If needed later you can whitelist specific ones like:
 # !.env.example
 
-# --- Firebase Secrets ---
-src/lib/firebase/config.js
 
 # --- Vercel ---
 .vercel/
