@@ -1,17 +1,21 @@
-// src/app/layout.js
+'use client';
+
+import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
+import NotificationPrompt from '@/components/notifications/NotificationPrompt';
+import { registerServiceWorker } from './register-sw';
 import './globals.css';
 
-export const metadata = {
-  title: 'SattyoAlert - সত্যAlert',
-  description: 'নির্বাচনে সত্যের পাহারাদার',
-};
-
 export default function RootLayout({ children }) {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   return (
     <html lang="bn">
       <body>
         {children}
+        
         <Toaster
           position="top-right"
           toastOptions={{
@@ -37,6 +41,8 @@ export default function RootLayout({ children }) {
             },
           }}
         />
+
+        <NotificationPrompt />
       </body>
     </html>
   );
