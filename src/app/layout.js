@@ -13,6 +13,10 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="bn">
+      <head>
+        <title>SattyoAlert - সত্যAlert</title>
+        <meta name="description" content="নির্বাচনে সত্যের পাহারাদার" />
+      </head>
       <body>
         {children}
         
