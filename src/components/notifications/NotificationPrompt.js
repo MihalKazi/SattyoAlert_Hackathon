@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { requestNotificationPermission, onMessageListener } from '@/lib/firebase/config';
+import { requestNotificationPermission } from '@/lib/firebase/config';
 import { toast } from 'react-hot-toast';
 
 export default function NotificationPrompt() {
   const [permission, setPermission] = useState('default');
-  const [token, setToken] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
@@ -26,36 +25,14 @@ export default function NotificationPrompt() {
     }
   }, []);
 
-  useEffect(() => {
-    // Listen for foreground messages
-    if (permission === 'granted') {
-      onMessageListener().then((payload) => {
-        if (payload) {
-          toast.success(
-            <div>
-              <strong>{payload.notification?.title}</strong>
-              <p className="text-sm">{payload.notification?.body}</p>
-            </div>,
-            { duration: 6000 }
-          );
-        }
-      });
-    }
-  }, [permission]);
-
   const handleEnableNotifications = async () => {
-    const fcmToken = await requestNotificationPermission();
+    const result = await requestNotificationPermission();
     
-    if (fcmToken) {
-      setToken(fcmToken);
+    if (result) {
       setPermission('granted');
       setShowPrompt(false);
       
       toast.success('🔔 নোটিফিকেশন চালু হয়েছে!');
-      
-      // Here you would save the token to your database
-      // For demo, just log it
-      console.log('Save this token to send notifications:', fcmToken);
     } else {
       toast.error('নোটিফিকেশন অনুমতি প্রয়োজন');
     }
@@ -64,7 +41,9 @@ export default function NotificationPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false);
     // Don't ask again for 24 hours
-    localStorage.setItem('notification-prompt-dismissed', Date.now().toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('notification-prompt-dismissed', Date.now().toString());
+    }
   };
 
   // Don't show if already granted or denied

@@ -1,16 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import NotificationPrompt from '@/components/notifications/NotificationPrompt';
-import { registerServiceWorker } from './register-sw';
+import NotificationListener from '@/components/notifications/NotificationListener';
 import './globals.css';
 
 export default function RootLayout({ children }) {
-  useEffect(() => {
-    registerServiceWorker();
-  }, []);
-
   return (
     <html lang="bn">
       <head>
@@ -47,6 +42,7 @@ export default function RootLayout({ children }) {
         />
 
         <NotificationPrompt />
+        <NotificationListener />
       </body>
     </html>
   );
