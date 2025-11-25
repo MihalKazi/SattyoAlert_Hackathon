@@ -5,35 +5,109 @@ import Header from '@/components/layout/Header';
 import { toast } from 'react-hot-toast';
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  
   const [notification, setNotification] = useState({
     title: 'মিথ্যা দাবি শনাক্ত!',
     body: 'ইভিএম মেশিন হ্যাক সংক্রান্ত ভাইরাল পোস্ট সম্পূর্ণ মিথ্যা।',
   });
 
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Simple password check (for demo only!)
+    if (password === 'admin123') {
+      setIsAuthenticated(true);
+      toast.success('✅ অ্যাডমিন লগইন সফল!');
+    } else {
+      toast.error('❌ ভুল পাসওয়ার্ড!');
+    }
+  };
+
   const handleSendNotification = () => {
-    // For demo, just show a toast
-    // In production, this would call a Firebase Cloud Function
     toast.success('নোটিফিকেশন পাঠানো হয়েছে! (ডেমো মোড)');
     
-    // Simulate notification
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(notification.title, {
         body: notification.body,
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
       });
     }
   };
 
+  // Login Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-500 to-purple-800">
+        <Header />
+        
+        <main className="max-w-md mx-auto px-4 py-20">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">🔐</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                অ্যাডমিন লগইন
+              </h2>
+              <p className="text-sm text-gray-600">
+                অ্যাক্সেস করতে পাসওয়ার্ড প্রয়োজন
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  পাসওয়ার্ড
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none"
+                  placeholder="পাসওয়ার্ড লিখুন"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-all"
+              >
+                লগইন করুন
+              </button>
+            </form>
+
+            <div className="mt-6 p-3 bg-gray-100 rounded-lg">
+              <p className="text-xs text-gray-600 text-center">
+                ডেমো পাসওয়ার্ড: <span className="font-mono font-bold">admin123</span>
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Admin Dashboard (after login)
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-500 to-purple-800">
       <Header />
       
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            🔐 অ্যাডমিন প্যানেল (ডেমো)
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-gray-900">
+              🔐 অ্যাডমিন প্যানেল
+            </h2>
+            <button
+              onClick={() => {
+                setIsAuthenticated(false);
+                setPassword('');
+                toast.success('লগআউট সফল');
+              }}
+              className="text-sm text-gray-600 hover:text-red-600 font-semibold"
+            >
+              লগআউট
+            </button>
+          </div>
 
           <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-6">
             <p className="text-yellow-800 text-sm">
@@ -79,7 +153,7 @@ export default function AdminPage() {
             <ul className="text-sm text-purple-700 space-y-1">
               <li>✓ Firebase Cloud Functions দিয়ে পাঠানো হবে</li>
               <li>✓ সব ইউজারের টোকেন রিট্রিভ করে পাঠাবে</li>
-              <li>✓ টপিক-ভিত্তিক নোটিফিকেশন (নির্বাচন, ধর্মীয়, ইত্যাদি)</li>
+              <li>✓ টপিক-ভিত্তিক নোটিফিকেশন</li>
               <li>✓ সিডিউলড নোটিফিকেশন (দৈনিক সারসংক্ষেপ)</li>
             </ul>
           </div>

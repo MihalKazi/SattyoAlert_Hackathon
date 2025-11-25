@@ -2,10 +2,14 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { requestNotificationPermission } from '@/lib/firebase/config';
 import { toast } from 'react-hot-toast';
 
 export default function Header() {
+  const pathname = usePathname();
+  const isAdmin = pathname === '/admin';
+
   const handleEnableAlerts = async () => {
     const token = await requestNotificationPermission();
     
@@ -31,12 +35,24 @@ export default function Header() {
             </div>
           </Link>
           
-          <button 
-            onClick={handleEnableAlerts}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-          >
-            🔔 Enable Alerts
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Admin Link - only show if not already on admin page */}
+            {!isAdmin && (
+              <Link
+                href="/admin"
+                className="hidden md:block text-gray-600 hover:text-red-600 transition-colors text-sm font-semibold"
+              >
+                🔐 Admin
+              </Link>
+            )}
+            
+            <button 
+              onClick={handleEnableAlerts}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm md:text-base"
+            >
+              🔔 Enable Alerts
+            </button>
+          </div>
         </div>
       </div>
     </header>
