@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link'; // ADD THIS IMPORT
 import Header from '@/components/layout/Header';
 import { toast } from 'react-hot-toast';
 import { sendDemoNotification } from '@/lib/firebase/config';
@@ -109,9 +110,42 @@ export default function AdminPage() {
             </button>
           </div>
 
+          {/* Quick Actions Grid - FIXED */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <Link
+              href="/admin/reports"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg hover:shadow-xl transition-all group cursor-pointer block"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-4xl mb-2">📋</div>
+                  <h3 className="text-xl font-bold mb-1">Extension Reports</h3>
+                  <p className="text-sm text-blue-100">
+                    View &amp; manage user submissions
+                  </p>
+                </div>
+                <div className="text-3xl group-hover:translate-x-2 transition-transform">
+                  →
+                </div>
+              </div>
+            </Link>
+
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-4xl mb-2">🔔</div>
+                  <h3 className="text-xl font-bold mb-1">Send Notifications</h3>
+                  <p className="text-sm text-green-100">
+                    Alert users instantly
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-blue-800 text-sm">
-              <strong>💡 টিপ:</strong> প্রথমে "Enable Alerts" বাটনে ক্লিক করে নোটিফিকেশন অনুমতি দিন, তারপর এখান থেকে পাঠান।
+              <strong>💡 টিপ:</strong> প্রথমে &quot;Enable Alerts&quot; বাটনে ক্লিক করে নোটিফিকেশন অনুমতি দিন, তারপর এখান থেকে পাঠান।
             </p>
           </div>
 
