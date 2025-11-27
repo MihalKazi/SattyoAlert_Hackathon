@@ -13,6 +13,7 @@ export default function AdminReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('all'); // Filter state
 
   // Fetch reports manually
   const fetchReports = async () => {
@@ -29,6 +30,13 @@ export default function AdminReportsPage() {
           id: docSnap.id,
           ...docSnap.data(),
         });
+      });
+      
+      // Sort by newest first
+      reportsData.sort((a, b) => {
+        const dateA = a.submittedAt?.toDate?.() || new Date(0);
+        const dateB = b.submittedAt?.toDate?.() || new Date(0);
+        return dateB - dateA;
       });
       
       console.log('Total reports found:', reportsData.length);
@@ -85,6 +93,21 @@ export default function AdminReportsPage() {
     }
   };
 
+  // Filter reports based on selected filter
+  const filteredReports = filter === 'all' 
+    ? reports 
+    : reports.filter(r => r.status === filter);
+
+  // Count reports by status
+  const statusCounts = {
+    all: reports.length,
+    pending: reports.filter(r => !r.status || r.status === 'pending').length,
+    reviewing: reports.filter(r => r.status === 'reviewing').length,
+    verified: reports.filter(r => r.status === 'verified').length,
+    false: reports.filter(r => r.status === 'false').length,
+    misleading: reports.filter(r => r.status === 'misleading').length,
+  };
+
   // Login Screen
   if (!isAuthenticated) {
     return (
@@ -110,7 +133,7 @@ export default function AdminReportsPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none"
-                  placeholder="Password: admin123"
+                  placeholder="Password"
                   required
                 />
               </div>
@@ -142,7 +165,7 @@ export default function AdminReportsPage() {
                 ← Back to Admin Panel
               </Link>
               <h2 className="text-3xl font-bold text-gray-900">
-                📋 Extension Reports ({reports.length})
+                📋 Extension Reports ({filteredReports.length})
               </h2>
             </div>
             <div className="flex gap-2">
@@ -164,6 +187,29 @@ export default function AdminReportsPage() {
             </div>
           </div>
 
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+            {['all', 'pending', 'reviewing', 'verified', 'false', 'misleading'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-all ${
+                  filter === status
+                    ? 'bg-red-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {status === 'all' ? '🗂️ All' :
+                 status === 'pending' ? '⏳ Pending' :
+                 status === 'reviewing' ? '👀 Reviewing' :
+                 status === 'verified' ? '✅ Verified' :
+                 status === 'false' ? '❌ False' :
+                 '⚠️ Misleading'}
+                <span className="ml-1 text-xs opacity-75">({statusCounts[status]})</span>
+              </button>
+            ))}
+          </div>
+
           {error && (
             <div className="bg-red-100 border-2 border-red-600 rounded-lg p-4 mb-6">
               <p className="text-red-800 font-semibold">Error: {error}</p>
@@ -175,48 +221,59 @@ export default function AdminReportsPage() {
               <div className="text-4xl mb-4">⏳</div>
               <p className="text-gray-500">Loading reports...</p>
             </div>
-          ) : reports.length === 0 ? (
+          ) : filteredReports.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📭</div>
-              <p className="text-gray-500">No reports found</p>
-              <button
-                onClick={fetchReports}
-                className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Try Refreshing
-              </button>
+              <p className="text-gray-500">
+                {filter === 'all' ? 'No reports found' : `No ${filter} reports`}
+              </p>
+              {filter !== 'all' && (
+                <button
+                  onClick={() => setFilter('all')}
+                  className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  View All Reports
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
-              {reports.map((report) => (
+              {filteredReports.map((report) => (
                 <div key={report.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-red-300 transition-colors">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-2 ${
-                        report.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        report.status === 'reviewing' ? 'bg-blue-100 text-blue-800' :
-                        report.status === 'verified' ? 'bg-green-100 text-green-800' :
-                        report.status === 'false' ? 'bg-red-100 text-red-800' :
-                        'bg-orange-100 text-orange-800'
-                      }`}>
-                        {report.status?.toUpperCase() || 'PENDING'}
-                      </span>
-                      <h3 className="font-bold text-lg mb-2">{report.claim}</h3>
-                      <div className="flex gap-3 text-sm text-gray-600 mb-2">
-                        <span>📂 {report.category}</span>
-                        <span>⚠️ {report.urgency}</span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          (!report.status || report.status === 'pending') ? 'bg-yellow-100 text-yellow-800' :
+                          report.status === 'reviewing' ? 'bg-blue-100 text-blue-800' :
+                          report.status === 'verified' ? 'bg-green-100 text-green-800' :
+                          report.status === 'false' ? 'bg-red-100 text-red-800' :
+                          'bg-orange-100 text-orange-800'
+                        }`}>
+                          {(report.status || 'pending').toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ID: {report.id.slice(0, 8)}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-lg mb-2 text-gray-900">{report.claim}</h3>
+                      <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
+                        <span className="bg-gray-100 px-2 py-1 rounded">📂 {report.category}</span>
+                        <span className="bg-gray-100 px-2 py-1 rounded">⚠️ {report.urgency}</span>
+                        <span className="bg-gray-100 px-2 py-1 rounded">📱 {report.source}</span>
                       </div>
                       {report.sourceUrl && (
                         <a 
                           href={report.sourceUrl} 
                           target="_blank" 
-                          className="text-sm text-blue-600 hover:underline block mb-2"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline block mb-2 truncate"
                         >
-                          🔗 View Source
+                          🔗 {report.sourceUrl}
                         </a>
                       )}
                       <div className="text-xs text-gray-500">
-                        ID: {report.id}
+                        📅 {report.submittedAt?.toDate?.()?.toLocaleString('en-US') || 'Unknown date'}
                       </div>
                     </div>
                     
