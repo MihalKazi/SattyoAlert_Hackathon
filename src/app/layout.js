@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
         <title>SattyoAlert - সত্যAlert</title>
         <meta name="description" content="নির্বাচনে সত্যের পাহারাদার" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         
         <Toaster
