@@ -1,15 +1,38 @@
-// src/components/ui/StatusBadge.js
+
 import { getStatusName } from '@/data/sampleFactChecks';
+import { XCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function StatusBadge({ status }) {
-  const statusStyles = {
-    false: 'bg-red-600 text-white',
-    true: 'bg-green-600 text-white',
-    misleading: 'bg-amber-500 text-white'
+  const statusConfig = {
+    false: {
+      color: 'bg-gradient-to-r from-red-600 to-red-700',
+      text: 'text-white',
+      border: 'border-red-700',
+      icon: XCircle,
+      glow: 'shadow-lg shadow-red-500/50'
+    },
+    true: {
+      color: 'bg-gradient-to-r from-green-600 to-green-700',
+      text: 'text-white',
+      border: 'border-green-700',
+      icon: CheckCircle,
+      glow: 'shadow-lg shadow-green-500/50'
+    },
+    misleading: {
+      color: 'bg-gradient-to-r from-amber-500 to-amber-600',
+      text: 'text-white',
+      border: 'border-amber-600',
+      icon: AlertTriangle,
+      glow: 'shadow-lg shadow-amber-500/50'
+    }
   };
 
+  const config = statusConfig[status];
+  const Icon = config.icon;
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusStyles[status]}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 ${config.color} ${config.text} ${config.border} ${config.glow} transition-all duration-300 hover:scale-110`}>
+      <Icon className="w-3.5 h-3.5" />
       {getStatusName(status)}
     </span>
   );

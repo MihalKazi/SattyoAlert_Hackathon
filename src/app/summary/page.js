@@ -56,47 +56,63 @@ export default function SummaryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-purple-800">
+    <div className="min-h-screen relative overflow-hidden bg-gray-50">
+      {/* Professional Gradient Background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-50"></div>
+      
+      {/* Subtle Accent Circles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-100/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/3 -right-20 w-96 h-96 bg-indigo-100/15 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 left-1/4 w-80 h-80 bg-slate-100/20 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Grid Pattern Overlay */}
+      <div className="fixed inset-0 opacity-5" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 100 0 L 0 0 0 100' fill='none' stroke='white' stroke-width='1'/%3E%3C/svg%3E")`,
+        backgroundSize: '50px 50px',
+      }}></div>
+
       <Header />
       
-      <main className="max-w-6xl mx-auto px-4 py-8 pb-24">
+      <main className="relative max-w-6xl mx-auto px-4 py-8 pb-24">
         {/* Page Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-white mb-2">
+        <div className="text-center mb-8 animate-fade-in">
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
             দৈনিক সারসংক্ষেপ
           </h2>
-          <p className="text-purple-100 text-lg">
+          <p className="text-gray-600 text-lg">
             আজকের গুরুত্বপূর্ণ তথ্য যাচাই
           </p>
         </div>
 
         {/* Date Banner */}
-        <div className="bg-red-600 text-white rounded-xl p-4 mb-8 text-center shadow-lg">
+        <div className="bg-red-600 text-white rounded-xl p-4 mb-8 text-center shadow-lg animate-slide-up">
           <p className="text-xl font-bold">📅 {getTodayBangla()}</p>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {/* Total */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-lg">
-            <div className="text-4xl font-bold text-purple-600 mb-2">{stats.total}</div>
+          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-100">
+            <div className="text-4xl font-bold text-indigo-600 mb-2">{stats.total}</div>
             <p className="text-sm text-gray-600 font-semibold">মোট যাচাই</p>
           </div>
 
           {/* False */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-lg">
+          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-200">
             <div className="text-4xl font-bold text-red-600 mb-2">{stats.falseCount}</div>
             <p className="text-sm text-gray-600 font-semibold">মিথ্যা দাবি</p>
           </div>
 
           {/* True */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-lg">
+          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-300">
             <div className="text-4xl font-bold text-green-600 mb-2">{stats.trueCount}</div>
             <p className="text-sm text-gray-600 font-semibold">সত্য তথ্য</p>
           </div>
 
           {/* Misleading */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-lg">
+          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-500">
             <div className="text-4xl font-bold text-amber-600 mb-2">{stats.misleadingCount}</div>
             <p className="text-sm text-gray-600 font-semibold">বিভ্রান্তিকর</p>
           </div>
@@ -104,21 +120,21 @@ export default function SummaryPage() {
 
         {/* Engagement Stats */}
         <div className="grid md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-md hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold">{stats.totalViews.toLocaleString()}</p>
-                <p className="text-purple-100">মোট ভিউ</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
+                <p className="text-gray-600">মোট ভিউ</p>
               </div>
               <div className="text-5xl">👁️</div>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-md hover:scale-105 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold">{stats.totalShares.toLocaleString()}</p>
-                <p className="text-purple-100">মোট শেয়ার</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.totalShares.toLocaleString()}</p>
+                <p className="text-gray-600">মোট শেয়ার</p>
               </div>
               <div className="text-5xl">📤</div>
             </div>
@@ -126,7 +142,7 @@ export default function SummaryPage() {
         </div>
 
         {/* Category Breakdown */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-lg">
+        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
           <h3 className="text-xl font-bold text-gray-900 mb-4">📊 বিভাগ অনুযায়ী</h3>
           <div className="space-y-3">
             {Object.entries(stats.categoryBreakdown).map(([category, count]) => (
@@ -137,7 +153,7 @@ export default function SummaryPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-48 bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div 
-                      className="bg-red-600 h-full rounded-full transition-all"
+                      className="bg-gradient-to-r from-indigo-500 to-blue-600 h-full rounded-full transition-all duration-500"
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>
@@ -149,14 +165,14 @@ export default function SummaryPage() {
         </div>
 
         {/* High Priority False Claims */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-lg">
+        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-2xl">🔴</span>
             <h3 className="text-xl font-bold text-gray-900">জরুরি: উচ্চ অগ্রাধিকার মিথ্যা দাবি</h3>
           </div>
           <div className="space-y-4">
             {falseClaims.map((fc) => (
-              <div key={fc.id} className="border-l-4 border-red-600 bg-red-50 p-4 rounded-r-lg">
+              <div key={fc.id} className="border-l-4 border-red-600 bg-red-50 p-4 rounded-r-lg hover:shadow-md transition-all duration-300">
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-bold text-gray-900 flex-1">{fc.claim}</h4>
                   <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold ml-4">
@@ -174,14 +190,14 @@ export default function SummaryPage() {
         </div>
 
         {/* True Information */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-lg">
+        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-2xl">✅</span>
             <h3 className="text-xl font-bold text-gray-900">সত্য তথ্য</h3>
           </div>
           <div className="space-y-4">
             {trueClaims.map((fc) => (
-              <div key={fc.id} className="border-l-4 border-green-600 bg-green-50 p-4 rounded-r-lg">
+              <div key={fc.id} className="border-l-4 border-green-600 bg-green-50 p-4 rounded-r-lg hover:shadow-md transition-all duration-300">
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-bold text-gray-900 flex-1">{fc.claim}</h4>
                   <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold ml-4">
@@ -199,14 +215,14 @@ export default function SummaryPage() {
         </div>
 
         {/* Misleading Content */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-lg">
+        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-2xl">⚠️</span>
             <h3 className="text-xl font-bold text-gray-900">বিভ্রান্তিকর বিষয়বস্তু</h3>
           </div>
           <div className="space-y-4">
             {misleadingClaims.map((fc) => (
-              <div key={fc.id} className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-r-lg">
+              <div key={fc.id} className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-r-lg hover:shadow-md transition-all duration-300">
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-bold text-gray-900 flex-1">{fc.claim}</h4>
                   <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold ml-4">
@@ -224,11 +240,11 @@ export default function SummaryPage() {
         </div>
 
         {/* Summary Footer */}
-        <div className="bg-purple-900 text-white rounded-xl p-6 text-center shadow-lg">
+        <div className="bg-indigo-600 text-white rounded-xl p-6 text-center shadow-lg">
           <p className="text-lg mb-2">
             <span className="font-bold">আজ মোট {stats.total}টি দাবি যাচাই করা হয়েছে</span>
           </p>
-          <p className="text-purple-200 text-sm">
+          <p className="text-indigo-100 text-sm">
             সত্য তথ্য ছড়িয়ে দিন এবং গণতন্ত্র রক্ষায় অবদান রাখুন 🇧🇩
           </p>
         </div>
