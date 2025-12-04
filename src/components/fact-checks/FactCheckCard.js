@@ -1,10 +1,10 @@
 import StatusBadge from '@/components/ui/StatusBadge';
 import CategoryBadge from '@/components/ui/CategoryBadge';
 import { formatDateBangla } from '@/data/sampleFactChecks';
-import { Eye, Share2, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Eye, Share2, AlertCircle, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 
 export default function FactCheckCard({ factCheck }) {
-  const { claim, verdict, status, category, source, date, views, shares, priority } = factCheck;
+  const { claim, verdict, status, category, source, sourceUrl, date, views, shares, priority } = factCheck;
 
   const statusIcons = {
     false: AlertCircle,
@@ -14,8 +14,22 @@ export default function FactCheckCard({ factCheck }) {
 
   const StatusIcon = statusIcons[status];
 
+  // Handle card click - open source URL
+  const handleCardClick = (e) => {
+    // Prevent opening if clicking on specific interactive elements
+    if (e.target.closest('.no-propagate')) {
+      return;
+    }
+    if (sourceUrl) {
+      window.open(sourceUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
-    <div className="group bg-white rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-red-300 hover:-translate-y-2 relative overflow-hidden">
+    <div 
+      onClick={handleCardClick}
+      className="group bg-white rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-red-300 hover:-translate-y-2 relative overflow-hidden"
+    >
       {/* Priority Indicator */}
       {priority === 'high' && (
         <div className="absolute top-0 right-0">
@@ -62,11 +76,23 @@ export default function FactCheckCard({ factCheck }) {
 
       {/* Footer: Source and Stats */}
       <div className="flex justify-between items-end pt-4 border-t-2 border-gray-100">
-        <div>
-          <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-            সূত্র: <span className="font-semibold text-gray-700">{source}</span>
-          </p>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+              সূত্র:
+            </p>
+            <a 
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="no-propagate text-xs font-semibold text-red-600 hover:text-red-700 hover:underline flex items-center gap-1 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {source}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
           <p className="text-xs text-gray-400">{formatDateBangla(date)}</p>
         </div>
         
@@ -79,6 +105,14 @@ export default function FactCheckCard({ factCheck }) {
             <Share2 className="w-4 h-4" />
             <span className="text-xs font-semibold">{shares.toLocaleString()}</span>
           </div>
+        </div>
+      </div>
+
+      {/* Read More Indicator */}
+      <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+          বিস্তারিত পড়ুন
+          <ExternalLink className="w-3 h-3" />
         </div>
       </div>
 
