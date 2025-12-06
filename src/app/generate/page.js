@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import html2canvas from 'html2canvas';
 import { toast } from 'react-hot-toast';
 import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav'; // ✅ Imported
+import BottomNav from '@/components/layout/BottomNav'; 
 import { factChecks, getStatusName } from '@/data/sampleFactChecks'; 
 import { Download, Palette, Eye, Sparkles, CheckCircle2, Search, ChevronDown } from 'lucide-react';
 
@@ -32,20 +32,19 @@ function GenerateContent() {
           verdict: found.verdict,
           source: found.source
         });
-        toast.success('Fact loaded from Home page!');
+        toast.success('তথ্য লোড হয়েছে!');
       }
     }
   }, [urlId]);
 
-  // Search & Selection State
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('classic');
   const [isGenerating, setIsGenerating] = useState(false);
   
-  const previewRef = useRef(null);
+  // Ref for the HIDDEN fixed-size container
+  const generateRef = useRef(null); 
 
-  // Filter fact checks based on search
   const filteredOptions = factChecks.filter(fc => 
     fc.claim.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -59,7 +58,7 @@ function GenerateContent() {
     });
     setSearchTerm(''); 
     setIsDropdownOpen(false); 
-    toast.success('Fact loaded successfully!');
+    toast.success('তথ্য নির্বাচন করা হয়েছে!');
   };
 
   const templates = [
@@ -71,13 +70,21 @@ function GenerateContent() {
   const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
   const downloadImage = async () => {
-    if (!previewRef.current) return;
+    if (!generateRef.current) return; // Use the hidden ref
     setIsGenerating(true);
-    toast.loading('Generating graphic...', { id: 'gen' });
+    toast.loading('তৈরি হচ্ছে...', { id: 'gen' });
 
     try {
+      // Wait a moment for fonts/styles
       await new Promise(resolve => setTimeout(resolve, 500));
-      const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#ffffff' });
+      
+      // Capture the FIXED size container
+      const canvas = await html2canvas(generateRef.current, { 
+        scale: 2, // High resolution
+        backgroundColor: null,
+        logging: false,
+        useCORS: true
+      });
       
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
@@ -86,28 +93,73 @@ function GenerateContent() {
         link.href = url;
         link.click();
         URL.revokeObjectURL(url);
-        toast.success('Download complete!', { id: 'gen' });
+        toast.success('ডাউনলোড সম্পন্ন!', { id: 'gen' });
         setIsGenerating(false);
       });
     } catch (error) {
-      toast.error('Failed to generate', { id: 'gen' });
+      console.error(error);
+      toast.error('সমস্যা হয়েছে', { id: 'gen' });
       setIsGenerating(false);
     }
   };
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
+      
+      {/* --- HIDDEN CONTAINER FOR GENERATION (Fixed 1080x1080 equivalent) --- */}
+      <div className="fixed top-0 left-0 pointer-events-none opacity-0 z-[-1000] overflow-hidden">
+         <div 
+            ref={generateRef}
+            className={`w-[1080px] h-[1080px] flex flex-col justify-between p-[80px] bg-gradient-to-br ${selectedTemplateData.gradient}`}
+            style={{ fontFamily: 'Hind Siliguri, sans-serif' }}
+         >
+            <div>
+              {/* Status Badge */}
+              <div className="mb-12">
+                <span className={`inline-block px-8 py-4 rounded-full text-4xl font-bold shadow-xl bg-white ${
+                  formData.status === 'false' ? 'text-red-600' : 
+                  formData.status === 'true' ? 'text-green-600' : 'text-amber-600'
+                }`}>
+                  {getStatusName(formData.status)}
+                </span>
+              </div>
+
+              {/* Claim */}
+              <h2 className="text-6xl font-bold text-white mb-10 leading-tight drop-shadow-xl">
+                {formData.claim}
+              </h2>
+
+              {/* Verdict */}
+              <p className="text-white/95 text-4xl leading-relaxed drop-shadow-lg font-medium">
+                {formData.verdict}
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-12 pt-10 border-t-4 border-white/30 flex justify-between items-center text-white">
+              <div>
+                <p className="text-5xl font-bold mb-2">SattyoAlert</p>
+                <p className="text-2xl opacity-90 font-medium tracking-wide">আগে সত্য জানো বাংলাদেশ</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl opacity-80 mb-1">যাচাইকারী</p>
+                <p className="text-3xl font-bold">{formData.source}</p>
+              </div>
+            </div>
+         </div>
+      </div>
+
       {/* LEFT: CONTROLS */}
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-200 animate-slide-up">
         
         <div className="flex items-center gap-2 mb-6">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><Palette className="w-5 h-5"/></div>
-          <h3 className="text-2xl font-bold text-gray-900">Select Data</h3>
+          <h3 className="text-2xl font-bold text-gray-900">তথ্য নির্বাচন করুন</h3>
         </div>
 
         {/* --- SEARCHABLE DROPDOWN --- */}
         <div className="mb-8 relative">
-          <label className="text-sm font-bold text-gray-700 mb-2 block">Find Fact Check</label>
+          <label className="text-sm font-bold text-gray-700 mb-2 block">রিপোর্ট খুঁজুন</label>
           
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -115,7 +167,7 @@ function GenerateContent() {
             </div>
             <input
               type="text"
-              placeholder="Search claims..."
+              placeholder="কীওয়ার্ড দিয়ে খুঁজুন..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -151,7 +203,7 @@ function GenerateContent() {
                   </div>
                 ))
               ) : (
-                <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                <div className="p-4 text-center text-gray-500 text-sm">কোনো ফলাফল পাওয়া যায়নি</div>
               )}
             </div>
           )}
@@ -159,15 +211,21 @@ function GenerateContent() {
 
         {/* Read-Only Preview */}
         <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Selected Claim</p>
+          <p className="text-xs font-bold text-gray-500 uppercase mb-1">নির্বাচিত দাবি</p>
           <p className="text-gray-800 font-medium mb-3">{formData.claim}</p>
           <div className="flex gap-4">
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase mb-1">Verdict</p>
-              <span className="text-sm font-bold text-indigo-700">{getStatusName(formData.status)}</span>
+              <p className="text-xs font-bold text-gray-500 uppercase mb-1">সত্যতা</p>
+              <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${
+                formData.status === 'false' ? 'bg-red-100 text-red-700' :
+                formData.status === 'true' ? 'bg-green-100 text-green-700' :
+                'bg-amber-100 text-amber-700'
+              }`}>
+                {getStatusName(formData.status)}
+              </span>
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase mb-1">Source</p>
+              <p className="text-xs font-bold text-gray-500 uppercase mb-1">সূত্র</p>
               <span className="text-sm font-bold text-gray-700">{formData.source}</span>
             </div>
           </div>
@@ -175,7 +233,7 @@ function GenerateContent() {
 
         {/* Templates */}
         <div className="mb-6">
-          <label className="block text-sm font-bold text-gray-700 mb-3">Select Template</label>
+          <label className="block text-sm font-bold text-gray-700 mb-3">টেমপ্লেট নির্বাচন করুন</label>
           <div className="grid grid-cols-3 gap-3">
             {templates.map((t) => (
               <button
@@ -199,20 +257,19 @@ function GenerateContent() {
           }`}
         >
           {isGenerating ? <div className="spinner"></div> : <Download className="w-5 h-5" />}
-          {isGenerating ? 'Generating...' : 'Download Image'}
+          {isGenerating ? 'তৈরি হচ্ছে...' : 'ডাউনলোড করুন'}
         </button>
       </div>
 
-      {/* RIGHT: PREVIEW */}
+      {/* RIGHT: PREVIEW (Visual Only - Does Not Affect Download) */}
       <div className="bg-white rounded-3xl p-8 flex items-center justify-center border border-gray-200 shadow-xl">
         <div className="w-full max-w-md">
           <div className="flex items-center justify-center gap-2 mb-6 text-gray-500">
-            <Eye className="w-5 h-5" /> <span className="text-sm font-bold">Live Preview</span>
+            <Eye className="w-5 h-5" /> <span className="text-sm font-bold">লাইভ প্রিভিউ</span>
           </div>
           
-          {/* Graphic Preview Container */}
+          {/* Responsive Preview Container */}
           <div 
-            ref={previewRef}
             className={`w-full aspect-square rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br ${selectedTemplateData.gradient} p-8 flex flex-col`}
             style={{ fontFamily: 'Hind Siliguri, sans-serif' }}
           >
@@ -250,7 +307,7 @@ function GenerateContent() {
           </div>
 
           <p className="text-xs text-center mt-4 text-gray-400 flex justify-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> Official Format (Read Only)
+            <CheckCircle2 className="w-3 h-3" /> অফিশিয়াল ফরম্যাট (High Quality Export)
           </p>
         </div>
       </div>
@@ -271,10 +328,10 @@ export default function GeneratePage() {
             <Sparkles className="w-4 h-4 text-indigo-600" />
             <span className="text-gray-700 text-sm font-semibold">Graphics Studio</span>
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-3">Create Verified Graphics</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">শেয়ারযোগ্য গ্রাফিক্স তৈরি করুন</h2>
         </div>
         
-        <Suspense fallback={<div className="text-center py-20">Loading Generator...</div>}>
+        <Suspense fallback={<div className="text-center py-20">লোড হচ্ছে...</div>}>
           <GenerateContent />
         </Suspense>
       </main>
