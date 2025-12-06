@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
+import Header from '@/components/layout/Header'; // Assuming this is your Red-branded header
+import BottomNav from '@/components/layout/BottomNav'; // Assuming this is your Red-branded nav
 import { factChecks, getCategoryName, getStatusName } from '@/data/sampleFactChecks';
+import { ExternalLink, TrendingUp, Share2, Eye, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 export default function SummaryPage() {
   // Calculate statistics
@@ -56,201 +57,265 @@ export default function SummaryPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50">
-      {/* Professional Gradient Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-50"></div>
-      
-      {/* Subtle Accent Circles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-100/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/3 -right-20 w-96 h-96 bg-indigo-100/15 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 left-1/4 w-80 h-80 bg-slate-100/20 rounded-full blur-3xl"></div>
+    <div className="min-h-screen relative overflow-hidden bg-white pb-24">
+      {/* --- BACKGROUND LAYERS (White/Purple Glassmorphism) --- */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-purple-50 z-0"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-50">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-100/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 right-10 w-96 h-96 bg-indigo-100/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-blue-100/30 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Grid Pattern Overlay */}
-      <div className="fixed inset-0 opacity-5" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 100 0 L 0 0 0 100' fill='none' stroke='white' stroke-width='1'/%3E%3C/svg%3E")`,
-        backgroundSize: '50px 50px',
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" style={{
+        backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
+        backgroundSize: '24px 24px',
       }}></div>
 
-      <Header />
+      {/* Content Wrapper */}
+      <div className="relative z-10">
+        <Header />
       
-      <main className="relative max-w-6xl mx-auto px-4 py-8 pb-24">
-        {/* Page Header */}
-        <div className="text-center mb-8 animate-fade-in">
-          <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            দৈনিক সারসংক্ষেপ
-          </h2>
-          <p className="text-gray-600 text-lg">
-            আজকের গুরুত্বপূর্ণ তথ্য যাচাই
-          </p>
-        </div>
-
-        {/* Date Banner */}
-        <div className="bg-red-600 text-white rounded-xl p-4 mb-8 text-center shadow-lg animate-slide-up">
-          <p className="text-xl font-bold">📅 {getTodayBangla()}</p>
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {/* Total */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-100">
-            <div className="text-4xl font-bold text-indigo-600 mb-2">{stats.total}</div>
-            <p className="text-sm text-gray-600 font-semibold">মোট যাচাই</p>
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          {/* Page Header */}
+          <div className="text-center mb-8 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-red-600 to-purple-600 bg-clip-text text-transparent">
+              দৈনিক সারসংক্ষেপ
+            </h2>
+            <p className="text-gray-600">
+              আজকের গুরুত্বপূর্ণ তথ্য যাচাই রিপোর্ট
+            </p>
           </div>
 
-          {/* False */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-200">
-            <div className="text-4xl font-bold text-red-600 mb-2">{stats.falseCount}</div>
-            <p className="text-sm text-gray-600 font-semibold">মিথ্যা দাবি</p>
+          {/* Date Banner */}
+          <div className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl p-4 mb-8 text-center shadow-lg shadow-red-200/50 animate-slide-up transform hover:scale-[1.01] transition-transform">
+            <p className="text-lg md:text-xl font-bold flex items-center justify-center gap-2">
+              📅 {getTodayBangla()}
+            </p>
           </div>
 
-          {/* True */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-300">
-            <div className="text-4xl font-bold text-green-600 mb-2">{stats.trueCount}</div>
-            <p className="text-sm text-gray-600 font-semibold">সত্য তথ্য</p>
-          </div>
+          {/* Statistics Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {/* Total */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm border border-indigo-100 hover:shadow-md transition-all">
+              <div className="text-3xl font-bold text-indigo-600 mb-1">{stats.total}</div>
+              <p className="text-xs text-gray-600 font-semibold">মোট যাচাই</p>
+            </div>
 
-          {/* Misleading */}
-          <div className="bg-white rounded-xl p-6 text-center shadow-md border border-gray-200 hover:scale-105 transition-all duration-300 animate-slide-up delay-500">
-            <div className="text-4xl font-bold text-amber-600 mb-2">{stats.misleadingCount}</div>
-            <p className="text-sm text-gray-600 font-semibold">বিভ্রান্তিকর</p>
-          </div>
-        </div>
+            {/* False */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm border border-red-100 hover:shadow-md transition-all">
+              <div className="text-3xl font-bold text-red-600 mb-1">{stats.falseCount}</div>
+              <p className="text-xs text-gray-600 font-semibold">মিথ্যা দাবি</p>
+            </div>
 
-        {/* Engagement Stats */}
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-md hover:scale-105 transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
-                <p className="text-gray-600">মোট ভিউ</p>
-              </div>
-              <div className="text-5xl">👁️</div>
+            {/* True */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm border border-green-100 hover:shadow-md transition-all">
+              <div className="text-3xl font-bold text-green-600 mb-1">{stats.trueCount}</div>
+              <p className="text-xs text-gray-600 font-semibold">সত্য তথ্য</p>
+            </div>
+
+            {/* Misleading */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm border border-amber-100 hover:shadow-md transition-all">
+              <div className="text-3xl font-bold text-amber-500 mb-1">{stats.misleadingCount}</div>
+              <p className="text-xs text-gray-600 font-semibold">বিভ্রান্তিকর</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-md hover:scale-105 transition-all duration-300">
-            <div className="flex items-center justify-between">
+          {/* Engagement Stats */}
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-white/90 rounded-xl p-5 border border-purple-100 shadow-sm flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalShares.toLocaleString()}</p>
-                <p className="text-gray-600">মোট শেয়ার</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">মোট ভিউ</p>
               </div>
-              <div className="text-5xl">📤</div>
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                <Eye className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="bg-white/90 rounded-xl p-5 border border-blue-100 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalShares.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">মোট শেয়ার</p>
+              </div>
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                <Share2 className="w-5 h-5" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Category Breakdown */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">📊 বিভাগ অনুযায়ী</h3>
-          <div className="space-y-3">
-            {Object.entries(stats.categoryBreakdown).map(([category, count]) => (
-              <div key={category} className="flex items-center justify-between">
-                <span className="font-semibold text-gray-700">
-                  {getCategoryName(category)}
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="w-48 bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-indigo-500 to-blue-600 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${(count / stats.total) * 100}%` }}
-                    ></div>
+          {/* Category Breakdown */}
+          <div className="bg-white/90 backdrop-blur rounded-xl p-6 mb-8 shadow-sm border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-gray-700" />
+              বিভাগ অনুযায়ী বিশ্লেষণ
+            </h3>
+            <div className="space-y-4">
+              {Object.entries(stats.categoryBreakdown).map(([category, count]) => (
+                <div key={category} className="flex items-center justify-between group">
+                  <div className="flex items-center gap-2 text-gray-700 w-1/3">
+                    <span className="font-medium text-sm">{getCategoryName(category)}</span>
                   </div>
-                  <span className="font-bold text-gray-900 w-8 text-right">{count}</span>
+                  <div className="flex-1 px-4">
+                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-indigo-600 h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${(count / stats.total) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <span className="font-bold text-gray-900 w-8 text-right text-sm">{count}</span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* High Priority False Claims */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">🔴</span>
-            <h3 className="text-xl font-bold text-gray-900">জরুরি: উচ্চ অগ্রাধিকার মিথ্যা দাবি</h3>
-          </div>
-          <div className="space-y-4">
-            {falseClaims.map((fc) => (
-              <div key={fc.id} className="border-l-4 border-red-600 bg-red-50 p-4 rounded-r-lg hover:shadow-md transition-all duration-300">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-bold text-gray-900 flex-1">{fc.claim}</h4>
-                  <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold ml-4">
-                    মিথ্যা
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700 mb-2">{fc.verdict}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>সূত্র: {fc.source}</span>
-                  <span>👁️ {fc.views.toLocaleString()} | 📤 {fc.shares.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          {/* --- LINKS TO SOURCE URL IMPLEMENTED BELOW --- */}
 
-        {/* True Information */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">✅</span>
-            <h3 className="text-xl font-bold text-gray-900">সত্য তথ্য</h3>
-          </div>
-          <div className="space-y-4">
-            {trueClaims.map((fc) => (
-              <div key={fc.id} className="border-l-4 border-green-600 bg-green-50 p-4 rounded-r-lg hover:shadow-md transition-all duration-300">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-bold text-gray-900 flex-1">{fc.claim}</h4>
-                  <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold ml-4">
-                    সত্য
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700 mb-2">{fc.verdict}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>সূত্র: {fc.source}</span>
-                  <span>👁️ {fc.views.toLocaleString()} | 📤 {fc.shares.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          {/* High Priority False Claims */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <XCircle className="w-6 h-6 text-red-600" />
+              <h3 className="text-xl font-bold text-gray-900">জরুরি: উচ্চ অগ্রাধিকার মিথ্যা দাবি</h3>
+            </div>
+            <div className="space-y-4">
+              {falseClaims.map((fc) => (
+                <a 
+                  key={fc.id}
+                  href={fc.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group relative bg-white rounded-xl border-l-4 border-red-500 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-5 overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ExternalLink className="w-5 h-5 text-gray-400" />
+                  </div>
+                  
+                  <div className="flex items-start justify-between mb-3 pr-6">
+                    <h4 className="font-bold text-gray-900 text-lg leading-snug group-hover:text-red-700 transition-colors">
+                      {fc.claim}
+                    </h4>
+                  </div>
+                  
+                  <div className="bg-red-50 p-3 rounded-lg mb-3">
+                    <p className="text-sm text-gray-800">
+                      <span className="font-bold text-red-700">ফলাফল: </span>
+                      {fc.verdict}
+                    </p>
+                  </div>
 
-        {/* Misleading Content */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-md border border-gray-200">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">⚠️</span>
-            <h3 className="text-xl font-bold text-gray-900">বিভ্রান্তিকর বিষয়বস্তু</h3>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-2 border-t pt-3">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-gray-100 px-2 py-1 rounded text-gray-700 font-medium">
+                        {fc.source}
+                      </span>
+                      <span>{fc.date}</span>
+                    </div>
+                    <div className="flex gap-3">
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {fc.views}</span>
+                      <span className="flex items-center gap-1"><Share2 className="w-3 h-3" /> {fc.shares}</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-          <div className="space-y-4">
-            {misleadingClaims.map((fc) => (
-              <div key={fc.id} className="border-l-4 border-amber-500 bg-amber-50 p-4 rounded-r-lg hover:shadow-md transition-all duration-300">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-bold text-gray-900 flex-1">{fc.claim}</h4>
-                  <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold ml-4">
-                    বিভ্রান্তিকর
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700 mb-2">{fc.verdict}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>সূত্র: {fc.source}</span>
-                  <span>👁️ {fc.views.toLocaleString()} | 📤 {fc.shares.toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
+
+          {/* True Information */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <h3 className="text-xl font-bold text-gray-900">সত্য তথ্য</h3>
+            </div>
+            <div className="space-y-4">
+              {trueClaims.map((fc) => (
+                <a 
+                  key={fc.id}
+                  href={fc.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group relative bg-white rounded-xl border-l-4 border-green-500 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-5"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ExternalLink className="w-5 h-5 text-gray-400" />
+                  </div>
+
+                  <div className="flex items-start justify-between mb-3 pr-6">
+                    <h4 className="font-bold text-gray-900 text-lg leading-snug group-hover:text-green-700 transition-colors">
+                      {fc.claim}
+                    </h4>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3 bg-green-50 p-3 rounded-lg">
+                    {fc.verdict}
+                  </p>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-2 border-t pt-3">
+                    <span className="bg-gray-100 px-2 py-1 rounded text-gray-700 font-medium">
+                      {fc.source}
+                    </span>
+                    <div className="flex gap-3">
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {fc.views}</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Summary Footer */}
-        <div className="bg-indigo-600 text-white rounded-xl p-6 text-center shadow-lg">
-          <p className="text-lg mb-2">
-            <span className="font-bold">আজ মোট {stats.total}টি দাবি যাচাই করা হয়েছে</span>
-          </p>
-          <p className="text-indigo-100 text-sm">
-            সত্য তথ্য ছড়িয়ে দিন এবং গণতন্ত্র রক্ষায় অবদান রাখুন 🇧🇩
-          </p>
-        </div>
-      </main>
+          {/* Misleading Content */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <AlertTriangle className="w-6 h-6 text-amber-500" />
+              <h3 className="text-xl font-bold text-gray-900">বিভ্রান্তিকর বিষয়বস্তু</h3>
+            </div>
+            <div className="space-y-4">
+              {misleadingClaims.map((fc) => (
+                <a 
+                  key={fc.id}
+                  href={fc.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group relative bg-white rounded-xl border-l-4 border-amber-400 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-5"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ExternalLink className="w-5 h-5 text-gray-400" />
+                  </div>
 
-      <BottomNav />
+                  <div className="flex items-start justify-between mb-3 pr-6">
+                    <h4 className="font-bold text-gray-900 text-lg leading-snug group-hover:text-amber-600 transition-colors">
+                      {fc.claim}
+                    </h4>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3 bg-amber-50 p-3 rounded-lg">
+                    {fc.verdict}
+                  </p>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-2 border-t pt-3">
+                    <span className="bg-gray-100 px-2 py-1 rounded text-gray-700 font-medium">
+                      {fc.source}
+                    </span>
+                    <div className="flex gap-3">
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {fc.views}</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary Footer */}
+          <div className="bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl p-6 text-center shadow-lg shadow-red-200">
+            <p className="text-lg mb-2">
+              <span className="font-bold">আজ মোট {stats.total}টি দাবি যাচাই করা হয়েছে</span>
+            </p>
+            <p className="text-red-100 text-sm">
+              সত্য তথ্য ছড়িয়ে দিন এবং গণতন্ত্র রক্ষায় অবদান রাখুন 🇧🇩
+            </p>
+          </div>
+        </main>
+
+        <BottomNav />
+      </div>
     </div>
   );
 }

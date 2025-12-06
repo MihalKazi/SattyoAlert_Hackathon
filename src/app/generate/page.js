@@ -1,352 +1,285 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import html2canvas from 'html2canvas';
 import { toast } from 'react-hot-toast';
 import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
-import { getStatusName } from '@/data/sampleFactChecks';
-import { Download, Share2, Palette, Eye, Sparkles } from 'lucide-react';
+import BottomNav from '@/components/layout/BottomNav'; // ✅ Imported
+import { factChecks, getStatusName } from '@/data/sampleFactChecks'; 
+import { Download, Palette, Eye, Sparkles, CheckCircle2, Search, ChevronDown } from 'lucide-react';
 
-export default function GeneratePage() {
+function GenerateContent() {
+  const searchParams = useSearchParams();
+  const urlId = searchParams.get('id');
+
+  // Initialize form data
   const [formData, setFormData] = useState({
-    claim: 'ইভিএম মেশিন দূর থেকে হ্যাক করা যায়',
-    status: 'false',
-    verdict: 'নির্বাচন কমিশন নিশ্চিত করেছে যে সব ইভিএম মেশিন সম্পূর্ণ অফলাইন এবং কোনো ইন্টারনেট সংযোগ নেই।',
-    source: 'Boom Bangladesh'
+    claim: factChecks[0]?.claim || '',
+    status: factChecks[0]?.status || 'false',
+    verdict: factChecks[0]?.verdict || '',
+    source: factChecks[0]?.source || ''
   });
 
+  // Load data from URL ID or Default to first item
+  useEffect(() => {
+    if (urlId) {
+      const found = factChecks.find(f => f.id.toString() === urlId);
+      if (found) {
+        setFormData({
+          claim: found.claim,
+          status: found.status,
+          verdict: found.verdict,
+          source: found.source
+        });
+        toast.success('Fact loaded from Home page!');
+      }
+    }
+  }, [urlId]);
+
+  // Search & Selection State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('classic');
   const [isGenerating, setIsGenerating] = useState(false);
+  
   const previewRef = useRef(null);
 
+  // Filter fact checks based on search
+  const filteredOptions = factChecks.filter(fc => 
+    fc.claim.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSelect = (fc) => {
+    setFormData({
+      claim: fc.claim,
+      status: fc.status,
+      verdict: fc.verdict,
+      source: fc.source
+    });
+    setSearchTerm(''); 
+    setIsDropdownOpen(false); 
+    toast.success('Fact loaded successfully!');
+  };
+
   const templates = [
-    { 
-      id: 'classic', 
-      name: 'Classic', 
-      gradient: 'from-indigo-600 to-blue-700',
-      preview: 'from-indigo-600 to-blue-600'
-    },
-    { 
-      id: 'modern', 
-      name: 'Modern', 
-      gradient: 'from-slate-700 to-slate-900',
-      preview: 'from-slate-700 to-slate-800'
-    },
-    { 
-      id: 'minimal', 
-      name: 'Minimal', 
-      gradient: 'from-gray-800 to-gray-900',
-      preview: 'from-gray-700 to-gray-900'
-    }
+    { id: 'classic', name: 'Classic', gradient: 'from-indigo-600 to-blue-700', preview: 'from-indigo-600 to-blue-600' },
+    { id: 'modern', name: 'Modern', gradient: 'from-slate-700 to-slate-900', preview: 'from-slate-700 to-slate-800' },
+    { id: 'minimal', name: 'Minimal', gradient: 'from-gray-800 to-gray-900', preview: 'from-gray-700 to-gray-900' }
   ];
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
   const downloadImage = async () => {
     if (!previewRef.current) return;
-
     setIsGenerating(true);
-    toast.loading('ছবি তৈরি হচ্ছে...', { id: 'generating' });
+    toast.loading('Generating graphic...', { id: 'gen' });
 
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true,
-        allowTaint: true
-      });
-
+      const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#ffffff' });
+      
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.download = `sattyoalert-fact-check-${Date.now()}.png`;
+        link.download = `sattyoalert-${Date.now()}.png`;
         link.href = url;
         link.click();
         URL.revokeObjectURL(url);
-
-        toast.success('✅ ছবি ডাউনলোড সম্পন্ন!', { id: 'generating' });
+        toast.success('Download complete!', { id: 'gen' });
         setIsGenerating(false);
       });
     } catch (error) {
-      console.error('Error generating image:', error);
-      toast.error('ছবি তৈরিতে সমস্যা হয়েছে', { id: 'generating' });
+      toast.error('Failed to generate', { id: 'gen' });
       setIsGenerating(false);
     }
   };
 
-  const shareToWhatsApp = () => {
-    const text = encodeURIComponent(`${formData.claim}\n\n${getStatusName(formData.status)}: ${formData.verdict}\n\nসূত্র: ${formData.source}\n\nSattyoAlert থেকে যাচাই করা হয়েছে 🔍`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-  };
-
-  const shareToFacebook = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}`, '_blank');
-  };
-
-  const shareToTwitter = () => {
-    const text = encodeURIComponent(`${formData.claim} - ${getStatusName(formData.status)}\n\nসূত্র: ${formData.source}\n\n#SattyoAlert #FactCheck #Bangladesh`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-  };
-
-  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
-
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50">
-      {/* Professional Gradient Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-100"></div>
-      
-      {/* Subtle Geometric Shapes */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-100/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 right-10 w-96 h-96 bg-indigo-100/15 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-slate-100/20 rounded-full blur-3xl"></div>
+    <div className="grid lg:grid-cols-2 gap-8">
+      {/* LEFT: CONTROLS */}
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-200 animate-slide-up">
+        
+        <div className="flex items-center gap-2 mb-6">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><Palette className="w-5 h-5"/></div>
+          <h3 className="text-2xl font-bold text-gray-900">Select Data</h3>
+        </div>
+
+        {/* --- SEARCHABLE DROPDOWN --- */}
+        <div className="mb-8 relative">
+          <label className="text-sm font-bold text-gray-700 mb-2 block">Find Fact Check</label>
+          
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search claims..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setIsDropdownOpen(true);
+              }}
+              onFocus={() => setIsDropdownOpen(true)}
+              className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none transition-all"
+            />
+            <div 
+              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </div>
+
+          {isDropdownOpen && (
+            <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((fc) => (
+                  <div
+                    key={fc.id}
+                    onClick={() => handleSelect(fc)}
+                    className="p-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors"
+                  >
+                    <p className="text-sm font-bold text-gray-900 line-clamp-1">{fc.claim}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${fc.status === 'false' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                        {getStatusName(fc.status)}
+                      </span>
+                      <span className="text-xs text-gray-500">{fc.source}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Read-Only Preview */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Selected Claim</p>
+          <p className="text-gray-800 font-medium mb-3">{formData.claim}</p>
+          <div className="flex gap-4">
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase mb-1">Verdict</p>
+              <span className="text-sm font-bold text-indigo-700">{getStatusName(formData.status)}</span>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase mb-1">Source</p>
+              <span className="text-sm font-bold text-gray-700">{formData.source}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Templates */}
+        <div className="mb-6">
+          <label className="block text-sm font-bold text-gray-700 mb-3">Select Template</label>
+          <div className="grid grid-cols-3 gap-3">
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTemplate(t.id)}
+                className={`p-1 rounded-xl border-2 transition-all ${selectedTemplate === t.id ? 'border-indigo-600 scale-105' : 'border-transparent hover:border-gray-300'}`}
+              >
+                <div className={`h-16 rounded-lg bg-gradient-to-br ${t.preview}`}></div>
+                <p className="text-xs font-bold text-center mt-1 text-gray-600">{t.name}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Download Button */}
+        <button
+          onClick={downloadImage}
+          disabled={isGenerating}
+          className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all ${
+            isGenerating ? 'bg-gray-400' : 'bg-gradient-to-r from-green-600 to-green-700 hover:shadow-xl'
+          }`}
+        >
+          {isGenerating ? <div className="spinner"></div> : <Download className="w-5 h-5" />}
+          {isGenerating ? 'Generating...' : 'Download Image'}
+        </button>
       </div>
 
-      {/* Dots Pattern Overlay */}
-      <div className="fixed inset-0 opacity-10" style={{
-        backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-        backgroundSize: '30px 30px',
-      }}></div>
+      {/* RIGHT: PREVIEW */}
+      <div className="bg-white rounded-3xl p-8 flex items-center justify-center border border-gray-200 shadow-xl">
+        <div className="w-full max-w-md">
+          <div className="flex items-center justify-center gap-2 mb-6 text-gray-500">
+            <Eye className="w-5 h-5" /> <span className="text-sm font-bold">Live Preview</span>
+          </div>
+          
+          {/* Graphic Preview Container */}
+          <div 
+            ref={previewRef}
+            className={`w-full aspect-square rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br ${selectedTemplateData.gradient} p-8 flex flex-col`}
+            style={{ fontFamily: 'Hind Siliguri, sans-serif' }}
+          >
+            {/* Status Badge */}
+            <div className="mb-6">
+              <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold shadow-lg bg-white ${
+                formData.status === 'false' ? 'text-red-600' : 
+                formData.status === 'true' ? 'text-green-600' : 'text-amber-600'
+              }`}>
+                {getStatusName(formData.status)}
+              </span>
+            </div>
 
+            {/* Claim Text */}
+            <h2 className="text-2xl font-bold text-white mb-4 leading-tight drop-shadow-md">
+              {formData.claim}
+            </h2>
+
+            {/* Verdict Text */}
+            <p className="text-white/90 text-sm leading-relaxed mb-auto">
+              {formData.verdict}
+            </p>
+
+            {/* --- FOOTER SECTION --- */}
+            <div className="mt-6 pt-6 border-t-2 border-white/30 flex justify-between items-center text-white">
+              <div>
+                <p className="text-lg font-bold">SattyoAlert</p>
+                <p className="text-xs opacity-90 font-medium tracking-wide">আগে সত্য জানো বাংলাদেশ</p> 
+              </div>
+              <div className="text-right">
+                <p className="text-xs opacity-80">যাচাইকারী</p>
+                <p className="text-sm font-semibold">{formData.source}</p>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs text-center mt-4 text-gray-400 flex justify-center gap-1">
+            <CheckCircle2 className="w-3 h-3" /> Official Format (Read Only)
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Wrapper to handle Suspense for useSearchParams
+export default function GeneratePage() {
+  return (
+    <div className="min-h-screen relative overflow-hidden bg-gray-50">
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-100"></div>
+      <div className="fixed inset-0 opacity-10" style={{ backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`, backgroundSize: '30px 30px' }}></div>
       <Header />
-      
       <main className="relative max-w-7xl mx-auto px-4 py-8 pb-24">
-        {/* Page Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 bg-white shadow-sm px-4 py-2 rounded-full mb-4 border border-gray-200">
             <Sparkles className="w-4 h-4 text-indigo-600" />
             <span className="text-gray-700 text-sm font-semibold">Graphics Studio</span>
           </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
-            শেয়ারযোগ্য গ্রাফিক্স তৈরি করুন
-          </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            সঠিক তথ্য সোশ্যাল মিডিয়ায় শেয়ার করার জন্য গ্রাফিক্স তৈরি করুন
-          </p>
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">Create Verified Graphics</h2>
         </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Side - Form */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-200 hover-lift animate-slide-up">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <Palette className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                কন্টেন্ট এডিট করুন
-              </h3>
-            </div>
-
-            {/* Claim */}
-            <div className="mb-5">
-              <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <span className="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-xs">1</span>
-                দাবি
-              </label>
-              <textarea
-                name="claim"
-                value={formData.claim}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition-all resize-none hover:border-gray-300"
-                placeholder="মিথ্যা দাবিটি লিখুন..."
-              />
-            </div>
-
-            {/* Status */}
-            <div className="mb-5">
-              <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <span className="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-xs">2</span>
-                সত্যতা
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition-all hover:border-gray-300 cursor-pointer"
-              >
-                <option value="false">❌ মিথ্যা</option>
-                <option value="true">✅ সত্য</option>
-                <option value="misleading">⚠️ বিভ্রান্তিকর</option>
-              </select>
-            </div>
-
-            {/* Verdict */}
-            <div className="mb-5">
-              <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <span className="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-xs">3</span>
-                ব্যাখ্যা
-              </label>
-              <textarea
-                name="verdict"
-                value={formData.verdict}
-                onChange={handleChange}
-                rows="4"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition-all resize-none hover:border-gray-300"
-                placeholder="সংক্ষিপ্ত ব্যাখ্যা লিখুন..."
-              />
-            </div>
-
-            {/* Source */}
-            <div className="mb-6">
-              <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <span className="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-xs">4</span>
-                সূত্র
-              </label>
-              <input
-                type="text"
-                name="source"
-                value={formData.source}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition-all hover:border-gray-300"
-                placeholder="যাচাইকারী প্রতিষ্ঠান"
-              />
-            </div>
-
-            {/* Template Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-3">
-                টেমপ্লেট নির্বাচন করুন
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {templates.map((template) => (
-                  <button
-                    key={template.id}
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className={`group p-4 rounded-2xl border-3 transition-all duration-300 ${
-                      selectedTemplate === template.id
-                        ? 'border-indigo-600 bg-indigo-50 scale-105 shadow-lg'
-                        : 'border-gray-200 hover:border-indigo-300 hover:scale-105'
-                    }`}
-                  >
-                    <div className={`w-full h-20 bg-gradient-to-br ${template.preview} rounded-xl mb-3 shadow-md group-hover:shadow-lg transition-shadow`}></div>
-                    <p className={`text-xs font-bold text-center ${
-                      selectedTemplate === template.id ? 'text-indigo-600' : 'text-gray-700'
-                    }`}>
-                      {template.name}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <button
-                onClick={downloadImage}
-                disabled={isGenerating}
-                className={`w-full py-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
-                  isGenerating
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl hover:scale-105'
-                }`}
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="spinner"></div>
-                    <span>তৈরি হচ্ছে...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-5 h-5" />
-                    <span>ডাউনলোড করুন</span>
-                  </>
-                )}
-              </button>
-
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={shareToWhatsApp}
-                  className="py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all text-sm hover:scale-105 shadow-md"
-                >
-                  WhatsApp
-                </button>
-                <button
-                  onClick={shareToFacebook}
-                  className="py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all text-sm hover:scale-105 shadow-md"
-                >
-                  Facebook
-                </button>
-                <button
-                  onClick={shareToTwitter}
-                  className="py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl font-semibold hover:from-sky-600 hover:to-sky-700 transition-all text-sm hover:scale-105 shadow-md"
-                >
-                  Twitter
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Preview */}
-          <div className="bg-white rounded-3xl p-8 flex items-center justify-center border border-gray-200 shadow-xl animate-slide-up delay-200">
-            <div className="w-full max-w-md">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <Eye className="w-5 h-5 text-gray-700" />
-                <p className="text-sm font-bold text-gray-700">লাইভ প্রিভিউ</p>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              </div>
-              
-              {/* Preview Container */}
-              <div 
-                ref={previewRef}
-                className={`w-full aspect-square rounded-3xl shadow-2xl overflow-hidden bg-gradient-to-br ${selectedTemplateData.gradient} hover:scale-105 transition-transform duration-300`}
-                style={{ fontFamily: 'Hind Siliguri, sans-serif' }}
-              >
-                <div className="h-full flex flex-col p-8">
-                  {/* Status Badge */}
-                  <div className="mb-6">
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
-                      formData.status === 'false' ? 'bg-white text-red-600' :
-                      formData.status === 'true' ? 'bg-white text-green-600' :
-                      'bg-white text-amber-600'
-                    }`}>
-                      {getStatusName(formData.status)}
-                    </span>
-                  </div>
-
-                  {/* Claim */}
-                  <h2 className="text-2xl font-bold text-white mb-4 leading-tight drop-shadow-lg">
-                    {formData.claim}
-                  </h2>
-
-                  {/* Verdict */}
-                  <p className="text-white/90 text-sm leading-relaxed mb-auto drop-shadow-md">
-                    {formData.verdict}
-                  </p>
-
-                  {/* Footer */}
-                  <div className="mt-6 pt-6 border-t-2 border-white/30">
-                    <div className="flex justify-between items-center text-white">
-                      <div>
-                        <p className="text-lg font-bold drop-shadow-md">SattyoAlert</p>
-                        <p className="text-xs opacity-80">সত্য Alert</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs opacity-80">সূত্র:</p>
-                        <p className="text-sm font-semibold">{formData.source}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-xs text-gray-500 text-center mt-4 flex items-center justify-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                ছবিটি 1080x1080px (Instagram/Facebook সাইজ)
-              </p>
-            </div>
-          </div>
-        </div>
+        
+        <Suspense fallback={<div className="text-center py-20">Loading Generator...</div>}>
+          <GenerateContent />
+        </Suspense>
       </main>
-
+      
+      {/* ✅ ADDED BOTTOM NAV HERE */}
       <BottomNav />
     </div>
   );
