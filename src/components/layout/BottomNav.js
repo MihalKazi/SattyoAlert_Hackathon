@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, FileText, Palette, BarChart3 } from 'lucide-react';
+import { Home, FileText, Palette, BarChart3, FileCheck } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -32,6 +32,12 @@ export default function BottomNav() {
       label: 'সারসংক্ষেপ',
       active: pathname === '/summary'
     },
+    { 
+      href: '/terms', 
+      icon: FileCheck,
+      label: 'শর্তাবলী',
+      active: pathname === '/terms'
+    },
   ];
 
   return (
@@ -44,7 +50,7 @@ export default function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative flex flex-col items-center gap-1 px-4 py-2.5 rounded-2xl transition-all duration-300 ${
+                className={`relative flex flex-col items-center gap-1 px-3 py-2.5 rounded-2xl transition-all duration-300 ${
                   item.active
                     ? 'text-red-600 scale-105'
                     : 'text-gray-500 hover:text-red-600 hover:bg-gray-50'
