@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import { FileCheck, Home, FileText, Palette, BarChart3, Bell, Shield, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FileCheck, Home, FileText, Palette, BarChart3, Bell, Shield, AlertTriangle, Scale, Lock, Info, AlertCircle } from 'lucide-react';
 
-// Header Component
+// --- COMPONENTS ---
+
+// 1. Header Component (Red Branding)
 function Header() {
   const [alertEnabled, setAlertEnabled] = useState(false);
 
   const handleEnableAlerts = () => {
-    // Simple notification permission request
     if ('Notification' in window) {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
           setAlertEnabled(true);
-          // Show a simple browser notification
           new Notification('🔔 নোটিফিকেশন চালু হয়েছে!', {
             body: 'আপনি এখন SattyoAlert থেকে আপডেট পাবেন',
             icon: '/icon.png'
@@ -76,13 +76,49 @@ function Header() {
       </div>
       
       {/* Animated Progress Bar */}
-      <div className="h-1 bg-gradient-to-r from-red-600 via-green-600 to-red-600"></div>
+      <div className="h-1 bg-gradient-to-r from-red-600 via-green-600 to-red-600 animate-gradient"></div>
     </header>
   );
 }
 
-// BottomNav Component
+// 2. BottomNav Component (With Scroll Hiding Logic)
 function BottomNav() {
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Hide if scrolling down more than 10px and not at the very top
+      if (currentScrollY > lastScrollY.current + 10 && currentScrollY > 50) {
+        setIsVisible(false);
+      } 
+      // Show if scrolling up
+      else if (currentScrollY < lastScrollY.current - 10) {
+        setIsVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+
+      // Clear existing timeout
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      // Show nav again if scrolling stops for 600ms
+      timeoutRef.current = setTimeout(() => {
+        setIsVisible(true);
+      }, 600);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const navItems = [
     { 
       href: '/', 
@@ -117,7 +153,11 @@ function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t-2 border-gray-200 shadow-2xl z-50">
+    <nav 
+      className={`fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-2xl z-50 transition-transform duration-500 ease-in-out ${
+        isVisible ? 'translate-y-0' : 'translate-y-full'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-2">
         <div className="flex justify-around items-center py-1.5">
           {navItems.map((item) => {
@@ -161,635 +201,434 @@ function BottomNav() {
         </div>
       </div>
       
-      <div className="h-2 bg-white"></div>
+      <div className="h-2 bg-white/50"></div>
     </nav>
   );
 }
 
-// Main Component
+// --- MAIN PAGE COMPONENT ---
 export default function TermsConditions() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-purple-800 pb-24">
-      <Header />
-      
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            শর্তাবলী ও দায়মুক্তি (Terms & Conditions)
-          </h1>
+    <div className="min-h-screen relative overflow-hidden bg-white pb-24">
+       {/* --- BACKGROUND LAYERS --- */}
+       <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-purple-50 z-0"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-50">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-100/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 right-10 w-96 h-96 bg-indigo-100/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-blue-100/30 rounded-full blur-3xl"></div>
+      </div>
+      <div
+        className="fixed inset-0 opacity-[0.03] pointer-events-none z-0"
+        style={{
+          backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
+          backgroundSize: '24px 24px',
+        }}
+      ></div>
 
-          <div className="space-y-6 text-gray-700">
-            {/* Section 1 - Our Role */}
-            <section className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-              <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
-                <span className="mr-2">⚠️</span> ১. আমাদের ভূমিকা - আমরা কে এবং কে নই
-              </h2>
-              <div className="space-y-3">
-                <p className="leading-relaxed font-semibold text-red-700">
-                  গুরুত্বপূর্ণ: SattyoAlert একটি সেতু (Bridge), সত্যতা যাচাইকারী নয়।
-                </p>
-                
-                <div className="bg-white p-3 rounded">
-                  <p className="font-semibold text-gray-900 mb-2">✅ আমরা যা করি:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>আপনার রিপোর্ট যাচাইকৃত ফ্যাক্ট-চেকারদের কাছে পাঠাই</li>
-                    <li>ফ্যাক্ট-চেকারদের উত্তর আপনার কাছে পৌঁছে দিই</li>
-                    <li>তথ্য বিতরণ ও সংযোগ স্থাপন করি</li>
-                  </ul>
-                </div>
+      <div className="relative z-10">
+        <Header />
+        
+        <div className="max-w-4xl mx-auto p-4 md:p-8">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-6 md:p-12">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent border-b-2 border-red-100 pb-4">
+              শর্তাবলী ও দায়মুক্তি (Terms & Conditions)
+            </h1>
 
-                <div className="bg-white p-3 rounded">
-                  <p className="font-semibold text-gray-900 mb-2">❌ আমরা যা করি না:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>নিজেরা তথ্য যাচাই করি না</li>
-                    <li>ফ্যাক্ট-চেকারদের সিদ্ধান্ত পরিবর্তন করি না</li>
-                    <li>যাচাইয়ের প্রক্রিয়ায় হস্তক্ষেপ করি না</li>
-                  </ul>
-                </div>
-
-                <p className="text-sm italic text-gray-600 mt-2">
-                  উদাহরণ: আমরা ডাক সেবার মতো। চিঠি পৌঁছে দিই, কিন্তু চিঠির বিষয়বস্তু লিখি না।
-                </p>
-              </div>
-            </section>
-
-            {/* Section 2 - Fact-Checker Independence */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ২. ফ্যাক্ট-চেকারদের স্বাধীনতা
-              </h2>
-              <div className="space-y-3">
-                <p className="leading-relaxed">
-                  আমরা যাচাইকৃত এবং স্বীকৃত ফ্যাক্ট-চেকিং সংস্থার সাথে কাজ করি যেমন:
-                </p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Boom Bangladesh</li>
-                  <li>Rumor Scanner</li>
-                  <li>AFP Fact Check Bangladesh</li>
-                  <li>অন্যান্য IFCN-যাচাইকৃত সংস্থা</li>
-                </ul>
-                
-                <div className="bg-blue-50 p-4 rounded-lg mt-3">
-                  <p className="font-semibold text-blue-900">📌 গুরুত্বপূর্ণ:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm mt-2 text-blue-800">
-                    <li>ফ্যাক্ট-চেকাররা সম্পূর্ণ স্বাধীনভাবে কাজ করেন</li>
-                    <li>তারা তাদের নিজস্ব পদ্ধতি অনুসরণ করেন</li>
-                    <li>আমরা তাদের সিদ্ধান্তে চাপ দিতে বা পরিবর্তন করতে পারি না</li>
-                    <li>প্রতিটি যাচাই ফলাফলে ফ্যাক্ট-চেকারের নাম ও পদ্ধতি প্রদর্শিত হয়</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 3 - Liability & Disclaimer */}
-            <section className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-              <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
-                <span className="mr-2">⚖️</span> ৩. দায়বদ্ধতা ও দায়মুক্তি (CRITICAL)
-              </h2>
-              
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded">
-                  <p className="font-bold text-red-700 mb-2">৩.১ তথ্যের নির্ভুলতা</p>
-                  <p className="text-sm leading-relaxed">
-                    আমরা যাচাইকৃত ফ্যাক্ট-চেকারদের থেকে তথ্য পেয়ে বিতরণ করি। যদিও আমরা শুধুমাত্র 
-                    বিশ্বাসযোগ্য উৎসের সাথে কাজ করি, <strong className="text-red-700">আমরা ১০০% নির্ভুলতার 
-                    গ্যারান্টি দিতে পারি না</strong> কারণ:
+            <div className="space-y-8 text-gray-700 text-base md:text-lg">
+              {/* Section 1 - Our Role */}
+              <section className="bg-amber-50/60 border-l-8 border-amber-400 p-6 rounded-r-xl shadow-sm">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Info className="text-amber-600" /> ১. আমাদের ভূমিকা - আমরা কে এবং কে নই
+                </h2>
+                <div className="space-y-4">
+                  <p className="leading-relaxed font-semibold text-amber-900">
+                    গুরুত্বপূর্ণ: SattyoAlert একটি সেতু (Bridge), সত্যতা যাচাইকারী নয়।
                   </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm mt-2 ml-4">
-                    <li>ফ্যাক্ট-চেকাররাও মানুষ এবং ভুল করতে পারেন</li>
-                    <li>নতুন তথ্য প্রকাশিত হলে পূর্বের সিদ্ধান্ত পরিবর্তন হতে পারে</li>
-                    <li>জটিল বিষয়ে পরিষ্কার "সত্য/মিথ্যা" সবসময় সম্ভব নয়</li>
-                    <li>প্রযুক্তিগত ত্রুটি ঘটতে পারে</li>
-                  </ul>
-                </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-amber-100 shadow-sm">
+                    <p className="font-bold text-gray-900 mb-2">✅ আমরা যা করি:</p>
+                    <ul className="list-disc list-inside space-y-1 text-base text-gray-700">
+                      <li>আপনার রিপোর্ট যাচাইকৃত ফ্যাক্ট-চেকারদের কাছে পাঠাই</li>
+                      <li>ফ্যাক্ট-চেকারদের উত্তর আপনার কাছে পৌঁছে দিই</li>
+                      <li>তথ্য বিতরণ ও সংযোগ স্থাপন করি</li>
+                    </ul>
+                  </div>
 
-                <div className="bg-white p-4 rounded">
-                  <p className="font-bold text-red-700 mb-2">৩.২ আমাদের দায়বদ্ধতার সীমা</p>
-                  <p className="text-sm leading-relaxed">
-                    <strong>SattyoAlert, এর প্রতিষ্ঠাতা, টিম, বা অংশীদাররা দায়ী নয়:</strong>
+                  <div className="bg-white p-4 rounded-lg border border-amber-100 shadow-sm">
+                    <p className="font-bold text-gray-900 mb-2">❌ আমরা যা করি না:</p>
+                    <ul className="list-disc list-inside space-y-1 text-base text-gray-700">
+                      <li>নিজেরা তথ্য যাচাই করি না</li>
+                      <li>ফ্যাক্ট-চেকারদের সিদ্ধান্ত পরিবর্তন করি না</li>
+                      <li>যাচাইয়ের প্রক্রিয়ায় হস্তক্ষেপ করি না</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 2 - Fact-Checker Independence */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-purple-600" /> ২. ফ্যাক্ট-চেকারদের স্বাধীনতা
+                </h2>
+                <div className="space-y-3 pl-4 border-l-2 border-purple-100">
+                  <p className="leading-relaxed">
+                    আমরা যাচাইকৃত এবং স্বীকৃত ফ্যাক্ট-চেকিং সংস্থার সাথে কাজ করি যেমন:
                   </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm mt-2 ml-4">
-                    <li>ফ্যাক্ট-চেকারদের সিদ্ধান্তের জন্য (তারা স্বাধীন)</li>
-                    <li>আমাদের প্ল্যাটফর্মে প্রদর্শিত তথ্যের ভুলের জন্য</li>
-                    <li>আমাদের তথ্যের ভিত্তিতে নেওয়া যেকোনো সিদ্ধান্তের জন্য</li>
-                    <li>আর্থিক, ব্যক্তিগত, বা অন্য কোনো ক্ষতির জন্য</li>
-                    <li>তৃতীয় পক্ষের ওয়েবসাইট বা সামগ্রীর জন্য</li>
+                  <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700 font-medium">
+                    <li>Boom Bangladesh</li>
+                    <li>Rumor Scanner</li>
+                    <li>AFP Fact Check Bangladesh</li>
+                    <li>অন্যান্য IFCN-যাচাইকৃত সংস্থা</li>
                   </ul>
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg mt-3 border border-blue-100">
+                    <p className="font-bold text-blue-900 mb-2">📌 গুরুত্বপূর্ণ:</p>
+                    <ul className="list-disc list-inside space-y-1 text-base text-blue-800">
+                      <li>ফ্যাক্ট-চেকাররা সম্পূর্ণ স্বাধীনভাবে কাজ করেন</li>
+                      <li>তারা তাদের নিজস্ব পদ্ধতি অনুসরণ করেন</li>
+                      <li>আমরা তাদের সিদ্ধান্তে চাপ দিতে বা পরিবর্তন করতে পারি না</li>
+                    </ul>
+                  </div>
                 </div>
+              </section>
 
-                <div className="bg-white p-4 rounded">
-                  <p className="font-bold text-red-700 mb-2">৩.৩ ব্যবহারকারীর দায়িত্ব</p>
-                  <p className="text-sm leading-relaxed">
-                    প্ল্যাটফর্ম ব্যবহার করে, আপনি স্বীকার করছেন:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm mt-2 ml-4">
-                    <li>আপনি নিজের বিচার-বিবেচনা ব্যবহার করবেন</li>
-                    <li>গুরুত্বপূর্ণ সিদ্ধান্তের জন্য একাধিক উৎস যাচাই করবেন</li>
-                    <li>আমরা শুধুমাত্র তথ্য সরবরাহকারী, পরামর্শদাতা নই</li>
-                    <li>আপনার কর্মের দায়িত্ব শুধুমাত্র আপনার</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 4 - Error Correction */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ৪. ভুল সংশোধন প্রক্রিয়া
-              </h2>
-              <div className="space-y-3">
-                <p className="leading-relaxed">
-                  যদি আপনি মনে করেন আমাদের প্ল্যাটফর্মে ভুল তথ্য প্রদর্শিত হচ্ছে:
-                </p>
+              {/* Section 3 - Liability & Disclaimer */}
+              <section className="bg-red-50/60 border-l-8 border-red-500 p-6 rounded-r-xl shadow-sm">
+                <h2 className="text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
+                  <Scale className="text-red-600" /> ৩. দায়বদ্ধতা ও দায়মুক্তি (CRITICAL)
+                </h2>
                 
-                <div className="bg-green-50 p-4 rounded">
-                  <p className="font-semibold text-green-900 mb-2">📝 পদক্ষেপ:</p>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li><strong>যোগাযোগ করুন:</strong> contact@sattyoalert.com এ ইমেইল করুন</li>
-                    <li><strong>বিস্তারিত দিন:</strong> কোন যাচাই, কোন তারিখ, কি ভুল</li>
-                    <li><strong>প্রমাণ দিন:</strong> যদি থাকে, বিকল্প উৎস সংযুক্ত করুন</li>
-                    <li><strong>অপেক্ষা করুন:</strong> আমরা ২৪-৪৮ ঘন্টার মধ্যে পর্যালোচনা করব</li>
-                  </ol>
-                </div>
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg border border-red-100 shadow-sm">
+                    <p className="font-bold text-red-700 mb-2">৩.১ তথ্যের নির্ভুলতা</p>
+                    <p className="text-base leading-relaxed text-gray-700">
+                      আমরা যাচাইকৃত ফ্যাক্ট-চেকারদের থেকে তথ্য পেয়ে বিতরণ করি। যদিও আমরা শুধুমাত্র 
+                      বিশ্বাসযোগ্য উৎসের সাথে কাজ করি, <strong className="text-red-700">আমরা ১০০% নির্ভুলতার 
+                      গ্যারান্টি দিতে পারি না</strong>।
+                    </p>
+                  </div>
 
-                <div className="bg-blue-50 p-4 rounded mt-3">
-                  <p className="font-semibold text-blue-900 mb-2">🔄 আমরা কি করব:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>অভিযোগ পর্যালোচনা করব</li>
-                    <li>সংশ্লিষ্ট ফ্যাক্ট-চেকারের সাথে যোগাযোগ করব</li>
-                    <li>যদি ভুল নিশ্চিত হয়, অবিলম্বে সংশোধন করব</li>
-                    <li>প্রয়োজনে সতর্কতা/আপডেট নোটিশ যোগ করব</li>
-                    <li>ভবিষ্যতে এরূপ ভুল এড়াতে প্রক্রিয়া উন্নত করব</li>
+                  <div className="bg-white p-4 rounded-lg border border-red-100 shadow-sm">
+                    <p className="font-bold text-red-700 mb-2">৩.২ আমাদের দায়বদ্ধতার সীমা</p>
+                    <p className="text-base leading-relaxed mb-2">
+                      <strong>SattyoAlert, এর প্রতিষ্ঠাতা, টিম, বা অংশীদাররা দায়ী নয়:</strong>
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-base text-gray-700 ml-2">
+                      <li>ফ্যাক্ট-চেকারদের সিদ্ধান্তের জন্য (তারা স্বাধীন)</li>
+                      <li>আমাদের প্ল্যাটফর্মে প্রদর্শিত তথ্যের ভুলের জন্য</li>
+                      <li>আর্থিক, ব্যক্তিগত, বা অন্য কোনো ক্ষতির জন্য</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-lg border border-red-100 shadow-sm">
+                    <p className="font-bold text-red-700 mb-2">৩.৩ ব্যবহারকারীর দায়িত্ব</p>
+                    <p className="text-base leading-relaxed">
+                      প্ল্যাটফর্ম ব্যবহার করে, আপনি স্বীকার করছেন যে আপনি নিজের বিচার-বিবেচনা ব্যবহার করবেন এবং তথ্যের জন্য শুধুমাত্র আমাদের ওপর নির্ভর করবেন না।
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 4 - Error Correction */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-green-600" /> ৪. ভুল সংশোধন প্রক্রিয়া
+                </h2>
+                <div className="space-y-3 pl-4 border-l-2 border-green-100">
+                  <p className="leading-relaxed">
+                    যদি আপনি মনে করেন আমাদের প্ল্যাটফর্মে ভুল তথ্য প্রদর্শিত হচ্ছে:
+                  </p>
+                  
+                  <div className="bg-emerald-50/50 p-4 rounded-lg border border-emerald-100">
+                    <p className="font-bold text-emerald-900 mb-2">📝 পদক্ষেপ:</p>
+                    <ol className="list-decimal list-inside space-y-2 text-base text-emerald-800">
+                      <li><strong>যোগাযোগ করুন:</strong> contact@sattyoalert.com এ ইমেইল করুন</li>
+                      <li><strong>বিস্তারিত দিন:</strong> কোন যাচাই, কোন তারিখ, কি ভুল</li>
+                      <li><strong>প্রমাণ দিন:</strong> যদি থাকে, বিকল্প উৎস সংযুক্ত করুন</li>
+                      <li><strong>অপেক্ষা করুন:</strong> আমরা ২৪-৪৮ ঘন্টার মধ্যে পর্যালোচনা করব</li>
+                    </ol>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 5 - Conflicts */}
+              <section className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ৫. দ্বন্দ্বপূর্ণ যাচাই ফলাফল
+                </h2>
+                <div className="space-y-2 text-base">
+                  <p className="leading-relaxed">
+                    কখনো কখনো বিভিন্ন ফ্যাক্ট-চেকার একই দাবিতে ভিন্ন সিদ্ধান্তে পৌঁছাতে পারেন। এ ক্ষেত্রে আমরা:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700 font-medium ml-2">
+                    <li>সব মতামত প্রদর্শন করব - কোনোটি লুকাব না</li>
+                    <li>প্রতিটি ফ্যাক্ট-চেকারের পদ্ধতি স্পষ্ট করব</li>
+                    <li>ব্যবহারকারীকে সিদ্ধান্ত নিতে দেব</li>
                   </ul>
                 </div>
+              </section>
 
-                <p className="text-sm italic text-gray-600 mt-3">
-                  <strong>দ্রষ্টব্য:</strong> যদি ভুল ফ্যাক্ট-চেকারের দিক থেকে হয়, আমরা তাদের 
-                  সংশোধিত সিদ্ধান্ত প্রকাশ করব কিন্তু তাদের পদ্ধতিতে হস্তক্ষেপ করব না।
-                </p>
-              </div>
-            </section>
+              {/* Section 6 - User Responsibilities */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  ৬. ব্যবহারকারীর দায়িত্ব ও নিষিদ্ধ কর্মকাণ্ড
+                </h2>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-red-50 p-5 rounded-xl border border-red-100 shadow-sm">
+                    <p className="font-bold text-red-700 mb-3 border-b border-red-200 pb-2">❌ নিষিদ্ধ:</p>
+                    <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+                      <li><strong>মিথ্যা রিপোর্ট:</strong> জেনেশুনে ভুল দাবি জমা দেওয়া</li>
+                      <li><strong>স্প্যাম:</strong> একই রিপোর্ট বারবার পাঠানো</li>
+                      <li><strong>হয়রানি:</strong> ব্যক্তিগত আক্রমণ বা ডক্সিং</li>
+                      <li><strong>ঘৃণামূলক বিষয়বস্তু:</strong> বৈষম্য বা হিংসার উস্কানি</li>
+                      <li><strong>অপব্যবহার:</strong> সিস্টেম হ্যাক বা ম্যানিপুলেশন</li>
+                    </ul>
+                  </div>
 
-            {/* Section 5 - Multiple Fact-Checker Conflicts */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ৫. দ্বন্দ্বপূর্ণ যাচাই ফলাফল
-              </h2>
-              <div className="bg-yellow-50 p-4 rounded">
+                  <div className="bg-green-50 p-5 rounded-xl border border-green-100 shadow-sm">
+                    <p className="font-bold text-green-700 mb-3 border-b border-green-200 pb-2">✅ উৎসাহিত:</p>
+                    <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+                      <li>সঠিক ও নির্দিষ্ট দাবি জমা দিন</li>
+                      <li>সম্ভব হলে উৎস লিংক যুক্ত করুন</li>
+                      <li>সম্মানজনক ভাষা ব্যবহার করুন</li>
+                      <li>দাবি যাচাই করুন, ব্যক্তিকে নয়</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 7 - Account Suspension */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ৭. অ্যাকাউন্ট স্থগিতকরণ
+                </h2>
                 <p className="leading-relaxed mb-3">
-                  কখনো কখনো বিভিন্ন ফ্যাক্ট-চেকার একই দাবিতে ভিন্ন সিদ্ধান্তে পৌঁছাতে পারেন।
+                  নিম্নলিখিত কারণে আমরা সেবা প্রত্যাখ্যান বা স্থগিত করতে পারি:
                 </p>
+                <div className="bg-gray-100 p-4 rounded-lg inline-block w-full">
+                  <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+                    <li><strong>প্রথম লঙ্ঘন:</strong> সতর্কতা + ২৪ ঘন্টা স্থগিতকরণ</li>
+                    <li><strong>দ্বিতীয় লঙ্ঘন:</strong> ৭ দিন স্থগিতকরণ</li>
+                    <li><strong>গুরুতর লঙ্ঘন:</strong> স্থায়ী নিষেধাজ্ঞা</li>
+                  </ul>
+                </div>
+              </section>
+
+              {/* Section 8 - Privacy & Data */}
+              <section className="bg-purple-50/50 p-6 rounded-xl border border-purple-100">
+                <h2 className="text-xl font-bold text-purple-900 mb-3 flex items-center gap-2">
+                  <Lock className="w-5 h-5" /> ৮. গোপনীয়তা ও ডেটা সুরক্ষা
+                </h2>
                 
-                <p className="font-semibold text-gray-900 mb-2">এ ক্ষেত্রে আমরা:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li><strong>সব মতামত প্রদর্শন করব</strong> - কোনোটি লুকাব না</li>
-                  <li>প্রতিটি ফ্যাক্ট-চেকারের পদ্ধতি স্পষ্ট করব</li>
-                  <li>ব্যবহারকারীকে সিদ্ধান্ত নিতে দেব</li>
-                  <li>কোনো একটি মতামতকে "সঠিক" বলে চাপিয়ে দেব না</li>
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                     <div>
+                        <p className="font-bold text-gray-900 mb-2">আমরা যা সংগ্রহ করি:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                          <li>আপনার জমা দেওয়া দাবি (টেক্সট)</li>
+                          <li>ঐচ্ছিক: ছবি, URL, বিভাগ</li>
+                        </ul>
+                     </div>
+                     <div>
+                        <p className="font-bold text-gray-900 mb-2">আমরা যা সংগ্রহ করি না:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                           <li>নাম, ইমেইল, ফোন নম্বর</li>
+                           <li>কোনো ব্যক্তিগত পরিচয় তথ্য</li>
+                        </ul>
+                     </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 mt-2">
+                    <p className="font-bold text-purple-800 mb-1">🔒 নিরাপত্তা ব্যবস্থা:</p>
+                    <p className="text-sm text-gray-600">সব ডেটা এনক্রিপ্টেড (SSL/TLS) থাকে। আমরা কোনো তথ্য বিক্রয় বা তৃতীয় পক্ষের সাথে শেয়ার করি না।</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 9 - Content Moderation */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ৯. কন্টেন্ট মডারেশন
+                </h2>
+                <p className="leading-relaxed mb-4 text-gray-600">
+                  সব রিপোর্ট আমাদের মডারেশন টিম দ্বারা পর্যালোচনা হয় (সাধারণত ২৪ ঘন্টার মধ্যে)।
+                </p>
+                <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                   <p className="font-bold text-red-700 mb-2">প্রত্যাখ্যাত হবে:</p>
+                   <ul className="list-disc list-inside space-y-1 text-base text-gray-700">
+                      <li>ব্যক্তিগত আক্রমণ বা গালিগালাজ</li>
+                      <li>হিংসার উস্কানি বা রাজনৈতিক প্রোপাগান্ডা</li>
+                      <li>স্প্যাম বা বিজ্ঞাপন</li>
+                   </ul>
+                </div>
+              </section>
+
+              {/* Section 10 - Legal Compliance */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ১০. আইনি সম্মতি
+                </h2>
+                <div className="space-y-2">
+                  <p className="leading-relaxed">
+                    এই সেবা বাংলাদেশের প্রচলিত আইন অনুযায়ী পরিচালিত।
+                  </p>
+                  <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded border border-gray-200">
+                    <strong>সতর্কতা:</strong> গুরুতর আইন লঙ্ঘন (যেমন: শিশু নির্যাতন, সন্ত্রাসবাদী বিষয়বস্তু, মৃত্যুর হুমকি) অবিলম্বে সংশ্লিষ্ট কর্তৃপক্ষের কাছে রিপোর্ট করা হবে।
+                  </p>
+                </div>
+              </section>
+
+              {/* Section 11 - Intellectual Property */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ১১. মেধা সম্পত্তি
+                </h2>
+                <p className="text-base text-gray-700 leading-relaxed">
+                   আপনার জমা দেওয়া রিপোর্টের মালিকানা আপনার থাকে। তবে, জমা দিয়ে আপনি SattyoAlert-কে এটি যাচাইকরণ ও প্রদর্শনের অনুমতি দিচ্ছেন। আমাদের তৈরি গ্রাফিক্স ও কন্টেন্ট শিক্ষামূলক উদ্দেশ্যে বিনামূল্যে ব্যবহার করা যেতে পারে।
+                </p>
+              </section>
+
+              {/* Section 12 - Service Changes */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ১২. সেবা পরিবর্তন
+                </h2>
+                <p className="text-base text-gray-700">
+                  আমরা যেকোনো সময় সেবা পরিবর্তন, স্থগিত বা বন্ধ করার অধিকার সংরক্ষণ করি। স্থায়ীভাবে বন্ধ হলে আমরা নোটিশ দেওয়ার চেষ্টা করব।
+                </p>
+              </section>
+
+              {/* Section 13 - Dispute Resolution */}
+              <section className="bg-blue-50/50 p-5 rounded-xl border border-blue-100">
+                <h2 className="text-xl font-bold text-blue-900 mb-3">
+                  ১৩. বিরোধ নিষ্পত্তি
+                </h2>
+                <p className="text-base text-gray-700 mb-2">
+                  যেকোনো অভিযোগের জন্য প্রথমে আমাদের সাথে যোগাযোগ করুন।
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-blue-800 font-medium">
+                   <li>ইমেইল: contact@sattyoalert.com</li>
+                   <li>সাড়া সময়: ৭ কর্মদিবস</li>
+                   <li>এখতিয়ার: ঢাকা, বাংলাদেশ</li>
                 </ul>
+              </section>
 
-                <p className="text-sm italic mt-3 text-gray-700">
-                  <strong>স্মরণীয়:</strong> জটিল বিষয়ে বিশেষজ্ঞদের মধ্যে মতভেদ থাকা স্বাভাবিক। 
-                  এটি ত্রুটি নয়, বরং তথ্যের জটিলতা প্রতিফলন।
+              {/* Section 14 - Emergency Situations */}
+              <section className="bg-red-50 border-2 border-red-100 p-6 rounded-xl shadow-sm">
+                <h2 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
+                  <AlertTriangle className="fill-red-100 text-red-600" /> ১৪. জরুরি পরিস্থিতি
+                </h2>
+                <div className="space-y-4">
+                  <div className="text-center font-bold text-red-900 text-lg bg-red-100/50 p-2 rounded-lg">
+                    SattyoAlert জরুরি সেবা নয়!
+                  </div>
+                  
+                  <div className="bg-white p-5 rounded-xl border border-red-100">
+                    <p className="mb-3 font-semibold text-gray-900">প্রয়োজনীয় জরুরি নম্বরসমূহ:</p>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-base text-gray-700">
+                      <li className="flex items-center gap-2"><span className="bg-red-100 px-2 rounded text-red-800 font-bold">999</span> জাতীয় জরুরি সেবা</li>
+                      <li className="flex items-center gap-2"><span className="bg-red-100 px-2 rounded text-red-800 font-bold">109</span> নারী ও শিশু নির্যাতন</li>
+                      <li className="flex items-center gap-2"><span className="bg-red-100 px-2 rounded text-red-800 font-bold">1098</span> শিশু সহায়তা</li>
+                      <li className="flex items-center gap-2"><span className="bg-red-100 px-2 rounded text-red-800 font-bold">Cyber</span> 01320001010</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 15 - Children's Safety */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ১৫. শিশুদের নিরাপত্তা
+                </h2>
+                <div className="bg-teal-50 p-4 rounded-lg border border-teal-100">
+                   <p className="text-base text-teal-900">
+                      আমরা ১৩ বছরের কম বয়সীদের কোনো ডেটা সংগ্রহ করি না। শিশু যৌন নির্যাতন সামগ্রী (CSAM) আমাদের প্ল্যাটফর্মে কঠোরভাবে নিষিদ্ধ এবং অবিলম্বে রিপোর্ট করা হবে।
+                   </p>
+                </div>
+              </section>
+
+              {/* Section 16 - Accessibility */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ১৬. প্রবেশযোগ্যতা (Accessibility)
+                </h2>
+                <p className="leading-relaxed mb-3 text-base text-gray-700">
+                  আমরা সবার জন্য প্রবেশযোগ্য প্ল্যাটফর্ম তৈরি করতে প্রতিশ্রুতিবদ্ধ (WCAG 2.1 AA স্ট্যান্ডার্ড)।
                 </p>
-              </div>
-            </section>
-
-            {/* Section 6 - User Responsibilities */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ৬. ব্যবহারকারীর দায়িত্ব ও নিষিদ্ধ কর্মকাণ্ড
-              </h2>
-              
-              <div className="bg-red-50 p-4 rounded mb-3">
-                <p className="font-bold text-red-700 mb-2">❌ নিষিদ্ধ:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li><strong>মিথ্যা রিপোর্ট:</strong> জেনেশুনে ভুল দাবি জমা দেওয়া</li>
-                  <li><strong>স্প্যাম:</strong> একই রিপোর্ট বারবার পাঠানো (দৈনিক সীমা: ৫টি)</li>
-                  <li><strong>হয়রানি:</strong> ব্যক্তিগত আক্রমণ বা ডক্সিং</li>
-                  <li><strong>ঘৃণামূলক বিষয়বস্তু:</strong> বৈষম্য বা হিংসার উস্কানি</li>
-                  <li><strong>ব্যক্তিগত তথ্য:</strong> অন্যের ফোন, ঠিকানা, ছবি শেয়ার করা</li>
-                  <li><strong>প্ল্যাটফর্ম অপব্যবহার:</strong> সিস্টেমে হ্যাক বা ম্যানিপুলেশন</li>
-                </ul>
-              </div>
-
-              <div className="bg-green-50 p-4 rounded">
-                <p className="font-bold text-green-700 mb-2">✅ উৎসাহিত:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>সঠিক ও নির্দিষ্ট দাবি জমা দিন</li>
-                  <li>সম্ভব হলে উৎস লিংক যুক্ত করুন</li>
-                  <li>সম্মানজনক ভাষা ব্যবহার করুন</li>
-                  <li>দাবি যাচাই করুন, ব্যক্তিকে নয়</li>
-                  <li>একাধিক উৎস থেকে তথ্য নিশ্চিত করুন</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Section 7 - Account Suspension */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ৭. অ্যাকাউন্ট স্থগিতকরণ
-              </h2>
-              <p className="leading-relaxed mb-3">
-                নিম্নলিখিত কারণে আমরা সেবা প্রত্যাখ্যান বা স্থগিত করতে পারি:
-              </p>
-              <ul className="list-disc list-inside space-y-2">
-                <li><strong>প্রথম লঙ্ঘন:</strong> সতর্কতা + ২৪ ঘন্টা স্থগিতকরণ</li>
-                <li><strong>দ্বিতীয় লঙ্ঘন:</strong> ৭ দিন স্থগিতকরণ</li>
-                <li><strong>তৃতীয় বা গুরুতর লঙ্ঘন:</strong> স্থায়ী নিষেধাজ্ঞা</li>
-                <li><strong>আইন লঙ্ঘন:</strong> অবিলম্বে নিষেধাজ্ঞা + কর্তৃপক্ষকে রিপোর্ট</li>
-              </ul>
-              
-              <div className="bg-blue-50 p-3 rounded mt-3">
-                <p className="text-sm"><strong>আপিল প্রক্রিয়া:</strong> যদি আপনি মনে করেন আপনাকে 
-                ভুলভাবে স্থগিত করা হয়েছে, appeals@sattyoalert.com এ যোগাযোগ করুন। 
-                আমরা ৪৮ ঘন্টার মধ্যে পর্যালোচনা করব।</p>
-              </div>
-            </section>
-
-            {/* Section 8 - Privacy & Data */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ৮. গোপনীয়তা ও ডেটা সুরক্ষা
-              </h2>
-              
-              <div className="space-y-3">
-                <div>
-                  <p className="font-semibold mb-2">আমরা যা সংগ্রহ করি:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm ml-4">
-                    <li>আপনার জমা দেওয়া দাবি (টেক্সট)</li>
-                    <li>ঐচ্ছিক: ছবি, URL, বিভাগ</li>
-                    <li>রিপোর্ট সাবমিশন সময় ও তারিখ</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="font-semibold mb-2 text-green-700">আমরা যা সংগ্রহ করি না:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm ml-4">
-                    <li>নাম, ইমেইল, ফোন নম্বর (সম্পূর্ণ বেনামী)</li>
-                    <li>লোকেশন ডেটা বা IP ঠিকানা</li>
-                    <li>ব্রাউজিং হিস্ট্রি বা কুকি</li>
-                    <li>কোনো ব্যক্তিগত পরিচয় তথ্য</li>
-                  </ul>
-                </div>
-
-                <div className="bg-purple-50 p-3 rounded">
-                  <p className="font-semibold text-purple-900 mb-2">🔒 ডেটা সুরক্ষা:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>সব ডেটা এনক্রিপ্টেড (SSL/TLS)</li>
-                    <li>নিয়মিত সিকিউরিটি অডিট</li>
-                    <li>কোনো তথ্য বিক্রয় বা তৃতীয় পক্ষের সাথে শেয়ার করা হয় না</li>
-                    <li>বাংলাদেশ ডেটা সুরক্ষা আইন মেনে চলা</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-{/* Section 9 - Content Moderation */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ৯. কন্টেন্ট মডারেশন
-              </h2>
-              <p className="leading-relaxed mb-3">
-                সব রিপোর্ট আমাদের মডারেশন টিম দ্বারা পর্যালোচনা হয় (সাধারণত ২৪ ঘন্টার মধ্যে)।
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-red-50 p-4 rounded">
-                  <p className="font-bold text-red-700 mb-2">❌ প্রত্যাখ্যাত হবে:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>ব্যক্তিগত আক্রমণ</li>
-                    <li>ঘৃণামূলক বক্তব্য</li>
-                    <li>হিংসার উস্কানি</li>
-                    <li>স্প্যাম/বিজ্ঞাপন</li>
-                    <li>CSAM বা অবৈধ বিষয়বস্তু</li>
-                  </ul>
-                </div>
-
-                <div className="bg-green-50 p-4 rounded">
-                  <p className="font-bold text-green-700 mb-2">✅ অনুমোদিত:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>যাচাইযোগ্য দাবি</li>
-                    <li>সংবাদ বা পাবলিক বক্তব্য</li>
-                    <li>সামাজিক মিডিয়া পোস্ট (পাবলিক)</li>
-                    <li>বিভ্রান্তিকর তথ্য</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 10 - Legal Compliance */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১০. আইনি সম্মতি
-              </h2>
-              <p className="leading-relaxed mb-3">
-                এই সেবা বাংলাদেশের আইন অনুযায়ী পরিচালিত। সব ব্যবহারকারী মেনে চলবেন:
-              </p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>বাংলাদেশ ডিজিটাল নিরাপত্তা আইন, ২০১৮</li>
-                <li>তথ্য ও যোগাযোগ প্রযুক্তি আইন</li>
-                <li>কপিরাইট আইন</li>
-                <li>ব্যক্তিগত গোপনীয়তা আইন</li>
-              </ul>
-
-              <div className="bg-red-50 p-4 rounded mt-3">
-                <p className="font-bold text-red-700 mb-2">⚠️ আইন লঙ্ঘনের ক্ষেত্রে:</p>
-                <p className="text-sm">
-                  গুরুতর আইন লঙ্ঘন (যেমন: শিশু নির্যাতন, সন্ত্রাসবাদী বিষয়বস্তু, মৃত্যুর হুমকি) 
-                  অবিলম্বে সংশ্লিষ্ট কর্তৃপক্ষের কাছে রিপোর্ট করা হবে।
+                <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded inline-block">
+                  প্রবেশযোগ্যতা সমস্যা থাকলে accessibility@sattyoalert.com এ জানান।
                 </p>
-              </div>
-            </section>
+              </section>
 
-            {/* Section 11 - Intellectual Property */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১১. মেধা সম্পত্তি
-              </h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="font-semibold mb-2">আপনার বিষয়বস্তু:</p>
-                  <p className="text-sm">
-                    আপনার জমা দেওয়া রিপোর্টের মালিকানা আপনার থাকে। তবে, জমা দিয়ে আপনি 
-                    SattyoAlert-কে একটি অ-একচেটিয়া লাইসেন্স দিচ্ছেন:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm mt-2 ml-4">
-                    <li>যাচাইকরণ উদ্দেশ্যে ব্যবহার</li>
-                    <li>প্ল্যাটফর্মে প্রদর্শন</li>
-                    <li>ফ্যাক্ট-চেকারদের সাথে শেয়ার</li>
-                    <li>শিক্ষামূলক ও গবেষণা উদ্দেশ্যে</li>
-                  </ul>
+              {/* Section 17 - Terms Updates */}
+              <section className="pl-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  ১৭. শর্তাবলী আপডেট
+                </h2>
+                <p className="text-base text-gray-700 leading-relaxed">
+                   আমরা সময়ে সময়ে এই শর্তাবলী আপডেট করতে পারি। বড় পরিবর্তনের ক্ষেত্রে ৩০ দিনের নোটিশ দেওয়া হবে। আপডেটের পর ব্যবহার অব্যাহত রাখলে নতুন শর্তাবলী মেনে নেওয়া হয়েছে বলে গণ্য হবে।
+                </p>
+              </section>
+
+              {/* Section 18 - Contact & Support */}
+              <section className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  ১৮. যোগাযোগ ও সহায়তা
+                </h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-purple-50 p-5 rounded-xl border border-purple-100 hover:shadow-md transition-shadow">
+                    <p className="font-bold text-purple-900 mb-2">📧 সাধারণ যোগাযোগ</p>
+                    <p className="text-base text-gray-700 font-mono">contact@sattyoalert.com</p>
+                    <p className="text-xs text-gray-500 mt-2">সাড়া সময়: ২৪-৪৮ ঘন্টা</p>
+                  </div>
+                  <div className="bg-red-50 p-5 rounded-xl border border-red-100 hover:shadow-md transition-shadow">
+                    <p className="font-bold text-red-900 mb-2">🚨 নিরাপত্তা রিপোর্ট</p>
+                    <p className="text-base text-gray-700 font-mono">security@sattyoalert.com</p>
+                    <p className="text-xs text-gray-500 mt-2">সাড়া সময়: ১২ ঘন্টা</p>
+                  </div>
                 </div>
-
-                <div>
-                  <p className="font-semibold mb-2">আমাদের বিষয়বস্তু:</p>
-                  <p className="text-sm">
-                    আমাদের তৈরি ফ্যাক্ট-চেক গ্রাফিক্স, লোগো, এবং ইন্টারফেস ডিজাইন 
-                    শিক্ষামূলক ও নাগরিক উদ্দেশ্যে বিনামূল্যে ব্যবহার করা যেতে পারে। 
-                    বাণিজ্যিক ব্যবহারের জন্য অনুমতি নিন।
-                  </p>
+                <div className="mt-6 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
+                   অফিস: SattyoAlert, ঢাকা, বাংলাদেশ
                 </div>
-              </div>
-            </section>
+              </section>
 
-            {/* Section 12 - Service Changes */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১২. সেবা পরিবর্তন ও বন্ধ
-              </h2>
-              <p className="leading-relaxed mb-3">
-                আমরা যেকোনো সময় সেবা পরিবর্তন, স্থগিত বা বন্ধ করার অধিকার সংরক্ষণ করি:
-              </p>
-              <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                <li>প্রযুক্তিগত আপগ্রেড বা রক্ষণাবেক্ষণের জন্য</li>
-                <li>আইনি বা নিয়ন্ত্রক প্রয়োজনীয়তার জন্য</li>
-                <li>নিরাপত্তা বা গোপনীয়তা কারণে</li>
-                <li>অর্থনৈতিক অস্থিতিশীলতার ক্ষেত্রে</li>
-              </ul>
-
-              <div className="bg-yellow-50 p-3 rounded mt-3">
-                <p className="text-sm">
-                  <strong>নোটিশ:</strong> যদি আমরা স্থায়ীভাবে বন্ধ করার সিদ্ধান্ত নিই, 
-                  আমরা কমপক্ষে ৩০ দিন আগে নোটিশ দেওয়ার চেষ্টা করব। তবে জরুরি পরিস্থিতিতে 
-                  অবিলম্বে বন্ধ হতে পারে।
+              {/* Final Acknowledgment */}
+              <section className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 p-8 rounded-2xl shadow-md text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  📜 সম্মতি বিবৃতি
+                </h2>
+                <p className="text-lg text-gray-800 italic leading-relaxed max-w-2xl mx-auto">
+                  "আমি নিশ্চিত করছি যে আমি উপরের সব শর্তাবলী পড়েছি এবং মেনে নিচ্ছি। 
+                  আমি বুঝি যে SattyoAlert একটি তথ্য সংযোগকারী প্ল্যাটফর্ম।"
                 </p>
-              </div>
-            </section>
-
-            {/* Section 13 - Dispute Resolution */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১৩. বিরোধ নিষ্পত্তি
-              </h2>
-              <div className="space-y-3">
-                <p className="leading-relaxed">
-                  যদি আপনার কোনো অভিযোগ থাকে:
-                </p>
-                
-                <ol className="list-decimal list-inside space-y-2 text-sm ml-4">
-                  <li><strong>প্রথমে আমাদের সাথে যোগাযোগ করুন:</strong> contact@sattyoalert.com</li>
-                  <li><strong>আমরা ৭ দিনের মধ্যে সাড়া দেব</strong> এবং সমাধানের চেষ্টা করব</li>
-                  <li><strong>যদি সমাধান না হয়:</strong> বাংলাদেশের আদালতে মামলা করতে পারেন</li>
-                  <li><strong>এখতিয়ার:</strong> সব বিরোধ ঢাকা, বাংলাদেশের আদালতে নিষ্পত্তি হবে</li>
-                </ol>
-
-                <div className="bg-blue-50 p-3 rounded mt-3">
-                  <p className="text-sm">
-                    <strong>আমাদের প্রতিশ্রুতি:</strong> আমরা সব অভিযোগ গুরুত্বের সাথে নেব 
-                    এবং ন্যায্য সমাধানের জন্য সর্বোচ্চ চেষ্টা করব।
-                  </p>
+                <div className="mt-6 flex justify-center">
+                   <div className="h-1 w-24 bg-red-300 rounded-full"></div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            {/* Section 14 - Emergency Situations */}
-            <section className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-              <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
-                <span className="mr-2">🚨</span> ১৪. জরুরি পরিস্থিতি
-              </h2>
-              <div className="space-y-3">
-                <p className="font-bold text-red-700">
-                  SattyoAlert জরুরি সেবা নয়!
-                </p>
-                
-                <p className="text-sm leading-relaxed">
-                  যদি আপনি জীবন-মৃত্যুর পরিস্থিতিতে থাকেন বা জরুরি সাহায্যের প্রয়োজন হয়:
-                </p>
-
-                <div className="bg-white p-4 rounded">
-                  <ul className="space-y-2 text-sm">
-                    <li><strong>জরুরি নম্বর:</strong> 999 (পুলিশ/ফায়ার/অ্যাম্বুলেন্স)</li>
-                    <li><strong>সাইবার ক্রাইম:</strong> 01320001010</li>
-                    <li><strong>শিশু সুরক্ষা:</strong> 1098</li>
-                    <li><strong>মহিলা ও শিশু নির্যাতন:</strong> 109</li>
-                    <li><strong>আত্মহত্যা প্রতিরোধ:</strong> +8809612001122 (Kaan Pete Roi)</li>
-                  </ul>
-                </div>
-
-                <p className="text-sm italic text-gray-700">
-                  আমরা তথ্য যাচাই প্ল্যাটফর্ম, জরুরি সাড়া সেবা নই। প্রকৃত জরুরি অবস্থায় 
-                  সরাসরি কর্তৃপক্ষের সাথে যোগাযোগ করুন।
-                </p>
-              </div>
-            </section>
-
-            {/* Section 15 - Children's Safety */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১৫. শিশুদের নিরাপত্তা
-              </h2>
-              <div className="space-y-3">
-                <p className="leading-relaxed">
-                  আমরা শিশুদের অনলাইন সুরক্ষায় প্রতিশ্রুতিবদ্ধ:
-                </p>
-
-                <ul className="list-disc list-inside space-y-2 text-sm ml-4">
-                  <li><strong>বয়স সীমা:</strong> ১৮ বছরের কম বয়সীদের অভিভাবকের তত্ত্বাবধানে ব্যবহার করা উচিত</li>
-                  <li><strong>শিশু ডেটা:</strong> আমরা ১৩ বছরের কম বয়সীদের কোনো ডেটা সংগ্রহ করি না</li>
-                  <li><strong>CSAM নীতি:</strong> শিশু যৌন নির্যাতন সামগ্রী অবিলম্বে রিপোর্ট এবং অপসারণ</li>
-                  <li><strong>সুরক্ষা রিপোর্টিং:</strong> কোনো শিশু নির্যাতন সন্দেহ হলে NCMEC ও বাংলাদেশ পুলিশে রিপোর্ট</li>
-                </ul>
-
-                <div className="bg-green-50 p-3 rounded mt-3">
-                  <p className="text-sm font-semibold text-green-800">
-                    🛡️ অভিভাবকদের জন্য: আপনার সন্তান অনলাইনে কি দেখছে তা মনিটর করুন এবং 
-                    তাদের মিথ্যা তথ্য চেনার দক্ষতা শেখান।
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* Section 16 - Accessibility */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১৬. প্রবেশযোগ্যতা (Accessibility)
-              </h2>
-              <p className="leading-relaxed mb-3">
-                আমরা সবার জন্য প্রবেশযোগ্য প্ল্যাটফর্ম তৈরি করতে প্রতিশ্রুতিবদ্ধ:
-              </p>
-
-              <ul className="list-disc list-inside space-y-1 text-sm ml-4">
-                <li>স্ক্রিন রিডার সামঞ্জস্যপূর্ণ (WCAG 2.1 AA)</li>
-                <li>ভয়েস ইনপুট অপশন</li>
-                <li>বড় টেক্সট এবং উচ্চ কন্ট্রাস্ট মোড</li>
-                <li>কীবোর্ড-শুধু নেভিগেশন</li>
-                <li>সহজ বাংলা ভাষা (গ্রেড ৮-১০ পড়ার স্তর)</li>
-              </ul>
-
-              <p className="text-sm mt-3 text-gray-600">
-                প্রবেশযোগ্যতা সমস্যা? accessibility@sattyoalert.com এ জানান।
-              </p>
-            </section>
-
-            {/* Section 17 - Terms Updates */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১৭. শর্তাবলী আপডেট
-              </h2>
-              <p className="leading-relaxed mb-3">
-                আমরা সময়ে সময়ে এই শর্তাবলী আপডেট করতে পারি:
-              </p>
-
-              <div className="bg-blue-50 p-4 rounded space-y-2">
-                <p className="text-sm"><strong>ছোট পরিবর্তন:</strong> অবিলম্বে কার্যকর (বানান সংশোধন, স্পষ্টীকরণ)</p>
-                <p className="text-sm"><strong>বড় পরিবর্তন:</strong> ৩০ দিন নোটিশ সহ (গুরুত্বপূর্ণ নীতি পরিবর্তন)</p>
-                <p className="text-sm"><strong>নোটিফিকেশন:</strong> প্ল্যাটফর্মে ব্যানার + আপডেট তারিখ</p>
-              </div>
-
-              <p className="text-sm mt-3 italic text-gray-600">
-                আপডেটের পর প্ল্যাটফর্ম ব্যবহার অব্যাহত রাখলে নতুন শর্তাবলী মেনে নেওয়া বোঝা যাবে।
-              </p>
-            </section>
-
-            {/* Section 18 - Contact & Support */}
-            <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                ১৮. যোগাযোগ ও সহায়তা
-              </h2>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-purple-50 p-4 rounded">
-                  <p className="font-semibold text-purple-900 mb-2">📧 সাধারণ যোগাযোগ:</p>
-                  <p className="text-sm">contact@sattyoalert.com</p>
-                  <p className="text-xs text-gray-600 mt-1">সাড়া সময়: ২৪-৪৮ ঘন্টা</p>
-                </div>
-
-                <div className="bg-red-50 p-4 rounded">
-                  <p className="font-semibold text-red-900 mb-2">🚨 জরুরি/নিরাপত্তা:</p>
-                  <p className="text-sm">security@sattyoalert.com</p>
-                  <p className="text-xs text-gray-600 mt-1">সাড়া সময়: ১২ ঘন্টা</p>
-                </div>
-
-                <div className="bg-green-50 p-4 rounded">
-                  <p className="font-semibold text-green-900 mb-2">⚖️ আইনি/কপিরাইট:</p>
-                  <p className="text-sm">legal@sattyoalert.com</p>
-                  <p className="text-xs text-gray-600 mt-1">DMCA নোটিস এখানে পাঠান</p>
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded">
-                  <p className="font-semibold text-blue-900 mb-2">♿ প্রবেশযোগ্যতা:</p>
-                  <p className="text-sm">accessibility@sattyoalert.com</p>
-                  <p className="text-xs text-gray-600 mt-1">প্ল্যাটফর্ম উন্নতির পরামর্শ</p>
-                </div>
-              </div>
-
-              <div className="bg-purple-50 p-4 rounded mt-4">
-                <p className="font-semibold text-purple-900 mb-2">📍 ঠিকানা:</p>
-                <p className="text-sm">
-                  SattyoAlert<br />
-                  [আপনার অফিস ঠিকানা]<br />
-                  ঢাকা, বাংলাদেশ
-                </p>
-              </div>
-            </section>
-
-            {/* Final Acknowledgment */}
-            <section className="bg-gradient-to-r from-purple-100 to-blue-100 border-2 border-purple-300 p-6 rounded-lg">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
-                📜 চূড়ান্ত স্বীকৃতি
-              </h2>
-              
-              <div className="space-y-3 text-sm">
-                <p className="leading-relaxed">
-                  <strong>এই প্ল্যাটফর্ম ব্যবহার করে, আপনি স্বীকার করছেন যে:</strong>
-                </p>
-
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>আপনি এই শর্তাবলী সম্পূর্ণ পড়েছেন এবং বুঝেছেন</li>
-                  <li>আপনি সব শর্তাবলী মেনে নিচ্ছেন</li>
-                  <li>আপনি বুঝেছেন যে আমরা সেতু, ফ্যাক্ট-চেকার নই</li>
-                  <li>আপনি জানেন যে আমরা ১০০% নির্ভুলতার গ্যারান্টি দিতে পারি না</li>
-                  <li>আপনি আপনার নিজের বিচার-বিবেচনা ব্যবহার করবেন</li>
-                  <li>আপনি নিষিদ্ধ বিষয়বস্তু পোস্ট করবেন না</li>
-                  <li>আপনি গ্রহণ করছেন যে আমরা দায়বদ্ধতার সীমা নির্ধারণ করেছি</li>
-                </ul>
-
-                <div className="bg-white p-4 rounded mt-4 border-2 border-purple-200">
-                  <p className="font-bold text-center text-gray-900 mb-2">
-                    ⚖️ সম্মতি বিবৃতি
-                  </p>
-                  <p className="text-xs text-center italic text-gray-700">
-                    "আমি নিশ্চিত করছি যে আমি উপরের সব শর্তাবলী পড়েছি, বুঝেছি এবং মেনে নিচ্ছি। 
-                    আমি বুঝি যে SattyoAlert একটি তথ্য বিতরণ প্ল্যাটফর্ম এবং সরাসরি ফ্যাক্ট-চেকিং 
-                    সেবা নয়। আমি আমার নিজের বিচার-বিবেচনা ব্যবহার করতে এবং দায়িত্বশীলভাবে 
-                    প্ল্যাটফর্ম ব্যবহার করতে সম্মত।"
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* Last Updated */}
-            <div className="pt-6 mt-6 border-t-2 border-gray-300">
-              <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600">
-                  <strong>শর্তাবলী সংস্করণ:</strong> 2.0
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>সর্বশেষ আপডেট:</strong> ৭ ডিসেম্বর, ২০২৫
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>কার্যকর তারিখ:</strong> ৭ ডিসেম্বর, ২০২৫
-                </p>
-                <p className="text-xs text-gray-500 mt-4">
-                  পূর্ববর্তী সংস্করণ দেখতে: versions@sattyoalert.com এ যোগাযোগ করুন
+              {/* Last Updated */}
+              <div className="pt-8 mt-8 border-t border-gray-200 text-center">
+                <p className="text-sm text-gray-500">
+                  সর্বশেষ আপডেট: ৭ ডিসেম্বর, ২০২৫ | সংস্করণ: ২.০
                 </p>
               </div>
             </div>
-          </div>
 
-          {/* Back Button */}
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => window.history.back()}
-              className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-all shadow-lg"
-            >
-              ← ফিরে যান
-            </button>
+            {/* Back Button */}
+            <div className="mt-12 text-center">
+              <button
+                onClick={() => window.history.back()}
+                className="bg-red-600 text-white px-10 py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg hover:shadow-red-200 transform hover:-translate-y-1"
+              >
+                ← ফিরে যান
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <BottomNav />
+        <BottomNav />
+      </div>
     </div>
   );
 }
