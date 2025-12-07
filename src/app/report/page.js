@@ -1,16 +1,48 @@
 'use client';
 
-import { useState } from 'react'; // ✅ Make sure useState is imported
+import { useState } from 'react';
+import { db } from '@/lib/firebase/config'; // ✅ Import DB
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // ✅ Import Firestore functions
+import { toast } from 'react-hot-toast';
 import Header from '@/components/layout/Header';
 import ReportForm from '@/components/forms/ReportForm';
 import BottomNav from '@/components/layout/BottomNav';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 export default function ReportPage() {
   const [submittedReports, setSubmittedReports] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleReportSubmit = (report) => {
-    setSubmittedReports([report, ...submittedReports]);
+  // --- CONNECTED SUBMIT FUNCTION ---
+  const handleReportSubmit = async (reportData) => {
+    setIsSubmitting(true);
+    
+    try {
+      // 1. Prepare data for Firebase
+      const payload = {
+        ...reportData,
+        status: 'pending', // Default status for Admin
+        submittedAt: serverTimestamp(), // Server time for sorting
+        source: 'User Report', // Tag source
+        votes: 0 // Initialize votes/engagement
+      };
+
+      // 2. Send to Firestore 'reports' collection
+      await addDoc(collection(db, 'reports'), payload);
+
+      // 3. Update local UI (Optimistic update)
+      setSubmittedReports([
+        { ...payload, timestamp: 'Just now' }, 
+        ...submittedReports
+      ]);
+
+      toast.success('রিপোর্ট সফলভাবে জমা দেওয়া হয়েছে!');
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      toast.error('রিপোর্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,7 +94,16 @@ export default function ReportPage() {
         </div>
 
         {/* MAIN FORM CARD */}
-        <div className="bg-white shadow-xl border border-gray-200 rounded-3xl p-8 animate-slide-up">
+        <div className="bg-white shadow-xl border border-gray-200 rounded-3xl p-8 animate-slide-up relative">
+          {isSubmitting && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-3xl">
+              <div className="flex flex-col items-center">
+                <Loader2 className="w-10 h-10 text-purple-600 animate-spin mb-2" />
+                <p className="font-bold text-purple-900">জমা দেওয়া হচ্ছে...</p>
+              </div>
+            </div>
+          )}
+          
           <h3 className="text-2xl font-bold text-gray-900 mb-6">
             রিপোর্ট সাবমিট করুন
           </h3>
@@ -85,7 +126,7 @@ export default function ReportPage() {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
-                      যাচাইকরণের অপেক্ষায়
+                      যাচাইকরণের অপেক্ষায় (Pending)
                     </span>
                     <span className="text-xs text-gray-500">
                       {r.timestamp}
@@ -96,12 +137,14 @@ export default function ReportPage() {
                     {r.claim}
                   </p>
 
-                  <p className="text-sm text-gray-700">
-                    বিভাগ: {r.category}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    গুরুত্ব: {r.urgency}
-                  </p>
+                  <div className="flex gap-4 mt-2">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-bold text-gray-500 text-xs uppercase">বিভাগ:</span> {r.category}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-bold text-gray-500 text-xs uppercase">গুরুত্ব:</span> {r.urgency}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
