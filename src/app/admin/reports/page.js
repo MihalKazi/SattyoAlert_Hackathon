@@ -2,27 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase/config';
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'; // Added deleteDoc here for consistency
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import Header from '@/components/layout/Header';
 import Link from 'next/link';
 import { 
-  Shield, 
-  Lock, 
-  ArrowLeft, 
-  RefreshCw, 
-  LogOut, 
-  Filter, 
-  Clock, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Trash2, 
-  ExternalLink,
-  Calendar,
-  Layers,
-  AlertOctagon
+  Shield, Lock, ArrowLeft, RefreshCw, LogOut, Filter, Clock, Eye, 
+  CheckCircle, XCircle, AlertTriangle, Trash2, ExternalLink, Calendar, 
+  Layers, AlertOctagon, FileText
 } from 'lucide-react';
 
 export default function AdminReportsPage() {
@@ -31,11 +18,10 @@ export default function AdminReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all'); // Filter state
+  const [filter, setFilter] = useState('all');
 
-  // --- LOGIC SECTION (Preserved) ---
+  // --- LOGIC SECTION ---
 
-  // Fetch reports manually
   const fetchReports = async () => {
     setLoading(true);
     setError(null);
@@ -58,6 +44,7 @@ export default function AdminReportsPage() {
         return dateB - dateA;
       });
       
+      console.log('Total reports found:', reportsData.length);
       setReports(reportsData);
       setLoading(false);
     } catch (err) {
@@ -77,7 +64,7 @@ export default function AdminReportsPage() {
     e.preventDefault();
     if (password === 'admin123') {
       setIsAuthenticated(true);
-      toast.success('✅ Logged in');
+      toast.success('✅ Logged in successfully');
     } else {
       toast.error('❌ Wrong password');
     }
@@ -90,7 +77,7 @@ export default function AdminReportsPage() {
         reviewedAt: new Date(),
       });
       toast.success(`Status updated to ${newStatus}`);
-      fetchReports(); // Refresh the list
+      fetchReports(); 
     } catch (error) {
       toast.error('Failed to update status');
       console.error(error);
@@ -98,7 +85,7 @@ export default function AdminReportsPage() {
   };
 
   const deleteReport = async (reportId) => {
-    if (!confirm('Delete this report?')) return;
+    if (!confirm('Are you sure you want to delete this report?')) return;
     
     try {
       await deleteDoc(doc(db, 'reports', reportId));
@@ -110,12 +97,10 @@ export default function AdminReportsPage() {
     }
   };
 
-  // Filter reports based on selected filter
   const filteredReports = filter === 'all' 
     ? reports 
     : reports.filter(r => r.status === filter);
 
-  // Count reports by status
   const statusCounts = {
     all: reports.length,
     pending: reports.filter(r => !r.status || r.status === 'pending').length,
@@ -125,9 +110,8 @@ export default function AdminReportsPage() {
     misleading: reports.filter(r => r.status === 'misleading').length,
   };
 
-  // --- UI SECTION (Updated Theme) ---
+  // --- UI SECTION ---
 
-  // Reusable Background
   const BackgroundLayers = () => (
     <>
       <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-purple-50 z-0"></div>
@@ -203,7 +187,7 @@ export default function AdminReportsPage() {
       
         <main className="max-w-7xl mx-auto px-4 py-8">
           
-          {/* Dashboard Header Card */}
+          {/* Header Card */}
           <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 mb-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
             <div className="flex flex-col md:flex-row items-center gap-4">
               <Link 
@@ -213,10 +197,10 @@ export default function AdminReportsPage() {
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </Link>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Extension Reports</h2>
-                <p className="text-sm text-gray-500 flex items-center gap-2">
-                  Total Reports: <span className="font-bold text-gray-900">{filteredReports.length}</span>
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900">Reports Management</h2>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                   <FileText className="w-4 h-4" /> Total Reports: <span className="font-bold text-gray-900">{filteredReports.length}</span>
+                </div>
               </div>
             </div>
 
@@ -257,7 +241,7 @@ export default function AdminReportsPage() {
                 <button
                   key={item.id}
                   onClick={() => setFilter(item.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all border ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all border ${
                     isActive
                       ? 'bg-red-600 text-white border-red-600 shadow-md transform scale-105'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
@@ -277,7 +261,7 @@ export default function AdminReportsPage() {
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3 text-red-700">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3 text-red-700 animate-slide-up">
               <AlertOctagon className="w-5 h-5" />
               <p className="font-semibold">Error: {error}</p>
             </div>
@@ -287,11 +271,11 @@ export default function AdminReportsPage() {
           {loading ? (
             <div className="text-center py-20 bg-white/50 backdrop-blur rounded-2xl border border-dashed border-gray-300">
               <RefreshCw className="w-10 h-10 text-gray-300 animate-spin mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">Fetching reports from database...</p>
+              <p className="text-gray-500 font-medium">Syncing with Firestore...</p>
             </div>
           ) : filteredReports.length === 0 ? (
             // Empty State
-            <div className="text-center py-20 bg-white/50 backdrop-blur rounded-2xl border border-dashed border-gray-300">
+            <div className="text-center py-20 bg-white/50 backdrop-blur rounded-2xl border border-dashed border-gray-300 animate-fade-in">
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Filter className="w-8 h-8 text-gray-300" />
               </div>
@@ -310,7 +294,7 @@ export default function AdminReportsPage() {
             </div>
           ) : (
             // Reports List
-            <div className="space-y-4">
+            <div className="space-y-4 animate-slide-up">
               {filteredReports.map((report) => (
                 <div 
                   key={report.id} 
@@ -336,7 +320,8 @@ export default function AdminReportsPage() {
                         </span>
                         
                         <span className="text-xs text-gray-400 font-mono flex items-center gap-1">
-                          <Shield className="w-3 h-3" /> ID: {report.id.slice(0, 8)}
+                          {/* ✅ FIX IS HERE: String() wrapper added */}
+                          <Shield className="w-3 h-3" /> ID: {String(report.id).slice(0, 8)}
                         </span>
                         
                         <span className="text-xs text-gray-400 flex items-center gap-1">
@@ -376,23 +361,23 @@ export default function AdminReportsPage() {
                             href={report.sourceUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-blue-100"
                           >
                             <ExternalLink className="w-3 h-3" /> 
-                            View Source Link
+                            Open Source Link
                           </a>
                         )}
                       </div>
                     </div>
                     
                     {/* Action Controls */}
-                    <div className="flex flex-col gap-3 w-full lg:w-auto min-w-[200px] border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-6">
-                      <label className="text-xs font-bold text-gray-400 uppercase">Update Status</label>
+                    <div className="flex flex-col gap-3 w-full lg:w-auto min-w-[220px] border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-6">
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Update Status</label>
                       <div className="relative">
                         <select
                           value={report.status || 'pending'}
                           onChange={(e) => updateStatus(report.id, e.target.value)}
-                          className="w-full appearance-none px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:bg-white focus:border-red-500 focus:outline-none transition-all cursor-pointer"
+                          className="w-full appearance-none px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:bg-white focus:border-red-500 focus:outline-none transition-all cursor-pointer shadow-sm hover:border-gray-300"
                         >
                           <option value="pending">⏳ Pending</option>
                           <option value="reviewing">👀 Reviewing</option>
@@ -407,7 +392,7 @@ export default function AdminReportsPage() {
                       
                       <button
                         onClick={() => deleteReport(report.id)}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all group-hover:border-red-300"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all group-hover:border-red-300 shadow-sm"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete Report
