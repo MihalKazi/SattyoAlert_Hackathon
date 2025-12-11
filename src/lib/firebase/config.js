@@ -1,6 +1,6 @@
-// src/lib/firebase/config.js
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth'; // 1. Import Auth
 
 const firebaseConfig = {
   apiKey: "AIzaSyB6XN0QorfhQv7QgQtKU-msxww-WA3ieiY",
@@ -11,8 +11,14 @@ const firebaseConfig = {
   appId: "1:131710688606:web:1ab0239a705e6f52ef43cf"
 };
 
-const app = initializeApp(firebaseConfig);
+// 2. Initialize App (Safe check for Next.js hot-reloading)
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+// 3. Initialize Services
 export const db = getFirestore(app);
+export const auth = getAuth(app); // Export Auth to use in Admin Page
+
+// --- Notification Logic (Kept unchanged) ---
 
 // Simple browser notification request
 export async function requestNotificationPermission() {
