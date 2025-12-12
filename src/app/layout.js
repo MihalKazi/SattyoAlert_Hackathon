@@ -1,12 +1,10 @@
-'use client';
-
-import { Inter, Hind_Siliguri } from "next/font/google"; // 1. Import Fonts
+import { Inter, Hind_Siliguri } from "next/font/google"; 
 import { Toaster } from 'react-hot-toast';
 import NotificationPrompt from '@/components/notifications/NotificationPrompt';
 import NotificationListener from '@/components/notifications/NotificationListener';
 import './globals.css';
 
-// 2. Configure Fonts
+// 1. Fonts Configuration
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const hindSiliguri = Hind_Siliguri({ 
   weight: ['300', '400', '500', '600', '700'],
@@ -14,25 +12,37 @@ const hindSiliguri = Hind_Siliguri({
   variable: '--font-bengali'
 });
 
+// 2. METADATA (Controls Link Previews)
+export const metadata = {
+  title: "SattyoAlert | সত্য জানুন, বিভ্রান্তি এড়ান",
+  description: "বাংলাদেশের নির্ভরযোগ্য ফ্যাক্ট-চেকিং প্ল্যাটফর্ম। গুজব, স্ক্যাম এবং ভুল তথ্যের বিরুদ্ধে আমরা সোচ্চার।",
+  
+  // This controls what people see on Facebook/WhatsApp
+  openGraph: {
+    title: "SattyoAlert | সত্য জানুন",
+    description: "বাংলাদেশের নির্ভরযোগ্য ফ্যাক্ট-চেকিং প্ল্যাটফর্ম। যাচাইকৃত তথ্য জানুন।",
+    type: "website",
+    locale: "bn_BD",
+    siteName: "SattyoAlert",
+  },
+  icons: {
+    icon: '/icon', // Uses your dynamic shield logo
+  },
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="bn" className={`${inter.variable} ${hindSiliguri.variable}`}>
-      <head>
-        <title>SattyoAlert - সত্যAlert</title>
-        <meta name="description" content="নির্বাচনে সত্যের পাহারাদার" />
-        {/* Next.js automatically detects the src/app/icon.js file for the favicon */}
-      </head>
-      
       <body className="bg-slate-50 font-sans" suppressHydrationWarning>
         {children}
         
-        {/* Updated Toaster with Premium Styling */}
+        {/* Toast Notifications */}
         <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#1f2937', // Slate-800 (Darker/Premium)
+              background: '#1f2937', 
               color: '#fff',
               fontFamily: 'var(--font-bengali), sans-serif',
               borderRadius: '12px',
@@ -41,21 +51,16 @@ export default function RootLayout({ children }) {
             },
             success: {
               duration: 3000,
-              iconTheme: {
-                primary: '#10B981', // Emerald-500
-                secondary: '#fff',
-              },
+              iconTheme: { primary: '#10B981', secondary: '#fff' },
             },
             error: {
               duration: 4000,
-              iconTheme: {
-                primary: '#DC2626', // Red-600
-                secondary: '#fff',
-              },
+              iconTheme: { primary: '#DC2626', secondary: '#fff' },
             },
           }}
         />
 
+        {/* Notification Systems */}
         <NotificationPrompt />
         <NotificationListener />
       </body>
