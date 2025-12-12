@@ -4,43 +4,75 @@ import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import html2canvas from 'html2canvas';
 import { toast } from 'react-hot-toast';
+import { db } from '@/lib/firebase/config';
+import { doc, getDoc, collection, getDocs, limit, query, where } from 'firebase/firestore';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
-import { factChecks, getStatusName } from '@/data/sampleFactChecks'; 
-import { Download, Palette, Eye, Sparkles, CheckCircle2, Search, ChevronDown, ImagePlus, X, Stamp } from 'lucide-react';
+import { Download, Palette, Eye, Sparkles, CheckCircle2, Search, ChevronDown, X, Stamp, Shield, AlertTriangle } from 'lucide-react';
 
 function GenerateContent() {
   const searchParams = useSearchParams();
   const urlId = searchParams.get('id');
 
-  // Initialize form data
+  // 1. Initial State
   const [formData, setFormData] = useState({
-    claim: factChecks[0]?.claim || '',
-    status: factChecks[0]?.status || 'false',
-    verdict: factChecks[0]?.verdict || '',
-    source: factChecks[0]?.source || ''
+    claim: 'নির্বাচন সংক্রান্ত কোনো তথ্য যাচাই করুন',
+    status: 'false',
+    verdict: 'সঠিক তথ্য জানতে আমাদের প্ল্যাটফর্ম ব্যবহার করুন।',
+    source: 'SattyoAlert'
   });
 
+  const [allFacts, setAllFacts] = useState([]); 
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('classic');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [bgImage, setBgImage] = useState(null);
   
-  const previewRef = useRef(null);
   const generateRef = useRef(null);
+  const dropdownRef = useRef(null);
 
+  // 2. Click Outside logic for Dropdown
   useEffect(() => {
-    if (urlId) {
-      const found = factChecks.find(f => f.id.toString() === urlId);
-      if (found) {
-        setFormData({ ...found });
-        toast.success('Fact loaded!');
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
       }
-    }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 3. Fetch Data
+  useEffect(() => {
+    const fetchSpecificFact = async () => {
+      if (!urlId) return;
+      try {
+        const docSnap = await getDoc(doc(db, 'reports', urlId));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setFormData({
+            claim: data.claim,
+            status: data.status,
+            verdict: data.verdict,
+            source: data.verifiedSourceUrl ? new URL(data.verifiedSourceUrl).hostname : 'SattyoAlert'
+          });
+        }
+      } catch (err) { console.error(err); }
+    };
+
+    const fetchDropdownFacts = async () => {
+      try {
+        const q = query(collection(db, 'reports'), where('status', 'in', ['verified', 'false']), limit(20));
+        const snap = await getDocs(q);
+        setAllFacts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (err) { console.error(err); }
+    };
+
+    fetchSpecificFact();
+    fetchDropdownFacts();
   }, [urlId]);
 
-  const filteredOptions = factChecks.filter(fc => 
+  const filteredOptions = allFacts.filter(fc => 
     fc.claim.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -49,262 +81,170 @@ function GenerateContent() {
       claim: fc.claim,
       status: fc.status,
       verdict: fc.verdict,
-      source: fc.source
+      source: fc.verifiedSourceUrl ? new URL(fc.verifiedSourceUrl).hostname : 'SattyoAlert'
     });
     setSearchTerm(''); 
     setIsDropdownOpen(false); 
-    toast.success('Selected!');
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBgImage(reader.result);
-        setSelectedTemplate('meme'); // Auto-switch to Meme mode on upload
-      };
-      reader.readAsDataURL(file);
-    }
+    toast.success('Fact Loaded');
   };
 
   const templates = [
-    { id: 'classic', name: 'Classic', gradient: 'from-indigo-600 to-blue-700', text: 'text-white' },
-    { id: 'modern', name: 'Modern', gradient: 'from-slate-800 to-black', text: 'text-white' },
-    { id: 'minimal', name: 'Minimal', gradient: 'from-white to-gray-100', text: 'text-gray-900' },
-    { id: 'meme', name: '🔥 Meme Mode', gradient: 'bg-black', text: 'text-white' }
+    { id: 'classic', name: 'Premium Red', gradient: 'from-red-600 to-red-800', text: 'text-white' },
+    { id: 'modern', name: 'Dark Truth', gradient: 'from-slate-900 to-black', text: 'text-white' },
+    { id: 'minimal', name: 'Clean White', gradient: 'from-white to-slate-50', text: 'text-slate-900' },
   ];
 
   const downloadImage = async () => {
     if (!generateRef.current) return;
     setIsGenerating(true);
-    toast.loading('Generating Meme...', { id: 'gen' });
+    const tid = toast.loading('Generating Official Card...');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const canvas = await html2canvas(generateRef.current, { scale: 2, backgroundColor: null, useCORS: true });
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = `sattyoalert-meme-${Date.now()}.png`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-        toast.success('Downloaded!', { id: 'gen' });
-        setIsGenerating(false);
-      });
+      const canvas = await html2canvas(generateRef.current, { scale: 3, useCORS: true });
+      const url = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `SattyoAlert-Verified-${Date.now()}.png`;
+      link.href = url;
+      link.click();
+      toast.success('Ready to Share!', { id: tid });
     } catch (error) {
-      console.error(error);
-      toast.error('Failed', { id: 'gen' });
+      toast.error('Failed', { id: tid });
+    } finally {
       setIsGenerating(false);
     }
   };
 
-  // --- THE GRAPHIC CARD COMPONENT ---
   const GraphicCard = ({ isFixedSize = false }) => {
-    const isMeme = selectedTemplate === 'meme';
-    const currentTemplate = templates.find(t => t.id === selectedTemplate);
+    const currentTemplate = templates.find(t => t.id === selectedTemplate) || templates[0];
+    const isFalse = formData.status === 'false';
 
-    // Dynamic Sizing
     const sizeClasses = isFixedSize 
-      ? { container: 'w-[1080px] h-[1080px]', padding: 'p-[60px]', title: 'text-6xl', body: 'text-4xl', footer: 'text-3xl' }
+      ? { container: 'w-[1080px] h-[1080px]', padding: 'p-[80px]', title: 'text-7xl', body: 'text-4xl', footer: 'text-3xl' }
       : { container: 'w-full aspect-square', padding: 'p-6', title: 'text-xl', body: 'text-sm', footer: 'text-xs' };
 
     return (
-      <div 
-        className={`relative overflow-hidden flex flex-col font-bengali
-          ${sizeClasses.container} 
-          ${isMeme ? 'bg-black' : `bg-gradient-to-br ${currentTemplate.gradient} ${sizeClasses.padding}`}
-        `}
-      >
-        {/* === MEME LAYOUT === */}
-        {isMeme ? (
-          <>
-            {/* Top Bar (The Claim) */}
-            <div className="bg-black text-white text-center p-6 border-b-4 border-red-600 z-20">
-              <p className={`font-bold uppercase tracking-wide text-red-500 mb-2 ${isFixedSize ? 'text-3xl' : 'text-xs'}`}>
-                দাবি (Claim)
-              </p>
-              <h2 className={`font-bold leading-tight ${isFixedSize ? 'text-5xl' : 'text-lg'}`}>
-                "{formData.claim}"
-              </h2>
-            </div>
-
-            {/* Middle (Image) */}
-            <div className="flex-1 relative bg-gray-900 flex items-center justify-center overflow-hidden">
-              {bgImage ? (
-                <div 
-                  className="absolute inset-0 bg-contain bg-center bg-no-repeat"
-                  style={{ backgroundImage: `url(${bgImage})` }}
-                />
-              ) : (
-                <p className="text-gray-600 font-bold opacity-30 uppercase text-4xl -rotate-12">No Image Uploaded</p>
-              )}
-              
-              {/* STAMP OVERLAY */}
-              <div className={`absolute border-8 rounded-lg font-black uppercase tracking-widest opacity-80 rotate-[-15deg] flex items-center justify-center backdrop-blur-sm
-                ${formData.status === 'false' ? 'border-red-600 text-red-600 bg-red-100/10' : 'border-green-600 text-green-600 bg-green-100/10'}
-                ${isFixedSize ? 'w-[600px] h-[200px] text-8xl border-[12px]' : 'w-[200px] h-[60px] text-2xl border-4'}
-              `}>
-                {formData.status === 'false' ? 'FAKE NEWS' : 'VERIFIED'}
-              </div>
-            </div>
-
-            {/* Bottom Bar (The Truth) */}
-            <div className="bg-black text-white text-center p-6 border-t-4 border-green-600 z-20">
-              <p className={`font-bold uppercase tracking-wide text-green-500 mb-2 ${isFixedSize ? 'text-3xl' : 'text-xs'}`}>
-                সত্য (Fact)
-              </p>
-              <p className={`font-medium leading-relaxed ${isFixedSize ? 'text-4xl' : 'text-sm'}`}>
-                {formData.verdict}
-              </p>
-              
-              <div className={`mt-4 pt-4 border-t border-gray-800 flex justify-center items-center gap-2 text-gray-500 font-mono ${isFixedSize ? 'text-2xl' : 'text-[10px]'}`}>
-                <Sparkles className={isFixedSize ? 'w-6 h-6' : 'w-3 h-3'} />
-                Verified by SattyoAlert
-              </div>
-            </div>
-          </>
-        ) : (
-          /* === STANDARD LAYOUT (Classic/Modern) === */
-          <>
-            <div className={`relative z-10 h-full flex flex-col justify-between ${currentTemplate.text}`}>
-              <div>
-                <span className={`inline-block font-bold shadow-lg 
-                  ${isFixedSize ? 'px-8 py-4 text-4xl rounded-full' : 'px-4 py-2 text-sm rounded-full'}
-                  ${formData.status === 'false' ? 'bg-red-600 text-white' : 
-                    formData.status === 'true' ? 'bg-green-600 text-white' : 'bg-amber-500 text-white'}
-                `}>
-                  {getStatusName(formData.status)}
-                </span>
-                <h2 className={`font-bold leading-tight mt-6 ${sizeClasses.title}`}>
-                  {formData.claim}
-                </h2>
-              </div>
-
-              <div className={`border-l-4 border-white/50 pl-6 ${isFixedSize ? 'border-l-8 pl-10' : ''}`}>
-                <p className={`font-medium leading-relaxed opacity-95 ${sizeClasses.body}`}>
-                  {formData.verdict}
-                </p>
-              </div>
-
-              <div className={`flex justify-between items-end border-t border-white/30 pt-6 ${isFixedSize ? 'pt-10 border-t-4' : ''}`}>
-                <div>
-                  <p className={`font-bold ${sizeClasses.footer}`}>SattyoAlert</p>
-                  <p className={`opacity-80 ${isFixedSize ? 'text-2xl' : 'text-xs'}`}>সত্য জানুন, নিরাপদ থাকুন</p>
+      <div className={`relative overflow-hidden flex flex-col ${sizeClasses.container} bg-gradient-to-br ${currentTemplate.gradient} ${sizeClasses.padding}`}>
+        {/* Branding Overlay */}
+        <div className="relative z-10 h-full flex flex-col justify-between text-white">
+          <div>
+            <div className="flex justify-between items-start mb-10">
+              <div className="flex items-center gap-3">
+                <div className="bg-white p-2 rounded-2xl shadow-lg">
+                  <Shield className="w-8 h-8 text-red-600 fill-red-600" />
                 </div>
-                <div className="text-right">
-                  <p className={`opacity-80 ${isFixedSize ? 'text-2xl' : 'text-xs'}`}>Source</p>
-                  <p className={`font-bold ${isFixedSize ? 'text-3xl' : 'text-sm'}`}>{formData.source}</p>
-                </div>
+                <span className={`font-black tracking-tighter ${isFixedSize ? 'text-5xl' : 'text-2xl'} ${currentTemplate.text}`}>SattyoAlert</span>
+              </div>
+              <div className={`${isFalse ? 'bg-red-500' : 'bg-emerald-500'} px-6 py-2 rounded-full border border-white/20 shadow-xl`}>
+                 <span className="font-black uppercase tracking-widest text-xs">Official Fact Check</span>
               </div>
             </div>
-          </>
-        )}
+            
+            <h2 className={`font-black leading-[1.15] mb-8 ${sizeClasses.title} ${currentTemplate.text}`}>
+              "{formData.claim}"
+            </h2>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md rounded-[2rem] p-8 border border-white/20 shadow-2xl relative">
+            <div className="absolute -top-4 left-8 bg-white text-slate-900 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">The Verdict</div>
+            <p className={`font-bold leading-relaxed ${sizeClasses.body} ${currentTemplate.text}`}>{formData.verdict}</p>
+          </div>
+
+          <div className="flex justify-between items-end border-t border-white/20 pt-8 mt-6">
+            <div>
+              <p className={`font-black opacity-60 uppercase tracking-widest mb-1 ${isFixedSize ? 'text-2xl' : 'text-[10px]'} ${currentTemplate.text}`}>Verified Source</p>
+              <p className={`font-black ${isFixedSize ? 'text-4xl' : 'text-sm'} ${currentTemplate.text}`}>{formData.source}</p>
+            </div>
+            <div className="text-right">
+                <p className={`font-black opacity-60 uppercase tracking-widest mb-1 ${isFixedSize ? 'text-2xl' : 'text-[10px]'} ${currentTemplate.text}`}>Status</p>
+                <div className="flex items-center gap-2">
+                    {isFalse ? <X className="text-red-400" /> : <CheckCircle2 className="text-emerald-400" />}
+                    <span className="font-black text-xl">{isFalse ? 'FAKE' : 'TRUE'}</span>
+                </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Large Decorative Icon */}
+        <div className="absolute -right-20 -bottom-20 opacity-10 pointer-events-none">
+           {isFalse ? <AlertTriangle className="w-[500px] h-[500px]" /> : <CheckCircle2 className="w-[500px] h-[500px]" />}
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="grid lg:grid-cols-2 gap-8">
-      {/* HIDDEN GENERATOR (Fixed 1080px) */}
+    <div className="grid lg:grid-cols-2 gap-12 items-start">
+      {/* HIDDEN GENERATOR */}
       <div className="fixed top-0 left-0 pointer-events-none opacity-0 z-[-1000]">
-         <div ref={generateRef}>
-            <GraphicCard isFixedSize={true} />
-         </div>
+         <div ref={generateRef}><GraphicCard isFixedSize={true} /></div>
       </div>
 
       {/* CONTROLS */}
-      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-200 animate-slide-up">
-        {/* Search */}
-        <div className="mb-8 relative">
-          <label className="text-sm font-bold text-gray-700 mb-2 block">Find Fact Check</label>
-          <div className="relative">
+      <div className="space-y-8 animate-fade-in">
+        {/* Improved Search Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 block">1. Select Verified News</label>
+          <div className="relative group">
             <input
               type="text"
-              placeholder="Search claims..."
+              placeholder="Search current database..."
               value={searchTerm}
+              onFocus={() => setIsDropdownOpen(true)}
               onChange={(e) => { setSearchTerm(e.target.value); setIsDropdownOpen(true); }}
-              className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none transition-all"
+              className="w-full pl-12 pr-12 py-4 bg-white border-2 border-slate-200 focus:border-red-500 rounded-2xl transition-all font-bold shadow-sm"
             />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-              <ChevronDown className="h-5 w-5 text-gray-400" />
-            </div>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500" />
+            <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </div>
+
           {isDropdownOpen && (
-            <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
-              {filteredOptions.map((fc) => (
-                <div key={fc.id} onClick={() => handleSelect(fc)} className="p-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-100">
-                  <p className="text-sm font-bold text-gray-900 line-clamp-1">{fc.claim}</p>
+            <div className="absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-[300px] overflow-y-auto p-2 animate-slide-up">
+              {filteredOptions.length > 0 ? filteredOptions.map((fc) => (
+                <div key={fc.id} onClick={() => handleSelect(fc)} className="p-4 hover:bg-red-50 rounded-xl cursor-pointer transition-colors border-b border-slate-50 last:border-0">
+                  <p className="text-sm font-bold text-slate-800 line-clamp-2 leading-snug">{fc.claim}</p>
                 </div>
-              ))}
+              )) : (
+                <p className="p-4 text-center text-slate-400 font-bold">No results found</p>
+              )}
             </div>
           )}
         </div>
 
-        {/* Templates */}
-        <div className="mb-6">
-          <label className="block text-sm font-bold text-gray-700 mb-3">Select Style</label>
-          <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 block">2. Select Card Style</label>
+          <div className="grid grid-cols-3 gap-3">
             {templates.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedTemplate(t.id)}
-                className={`p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${selectedTemplate === t.id ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}
-              >
-                {t.id === 'meme' ? <Stamp className="w-4 h-4 text-red-600" /> : <Palette className="w-4 h-4 text-gray-500" />}
-                <span className="text-sm font-bold text-gray-700">{t.name}</span>
+              <button key={t.id} onClick={() => setSelectedTemplate(t.id)} className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${selectedTemplate === t.id ? 'border-red-500 bg-red-50' : 'border-slate-200 bg-white hover:border-red-200'}`}>
+                <Palette className={`w-5 h-5 ${selectedTemplate === t.id ? 'text-red-600' : 'text-slate-400'}`} />
+                <span className="text-[10px] font-black uppercase">{t.name}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Upload (Only visible for Meme Mode) */}
-        {selectedTemplate === 'meme' && (
-          <div className="mb-6 animate-fade-in">
-            <label className="block text-sm font-bold text-gray-700 mb-3">Upload Fake News Screenshot</label>
-            <div className="flex gap-4 items-center">
-              <label className="flex-1 cursor-pointer border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center hover:border-indigo-500 hover:bg-indigo-50 transition-all group bg-gray-50">
-                <ImagePlus className="w-6 h-6 text-gray-400 group-hover:text-indigo-600 mb-2" />
-                <span className="text-xs text-gray-500 font-medium">Click to Upload</span>
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-              </label>
-              
-              {bgImage && (
-                <button onClick={() => setBgImage(null)} className="p-4 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 hover:bg-red-100 transition-all">
-                  <X className="w-6 h-6" />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
         <button
           onClick={downloadImage}
           disabled={isGenerating}
-          className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all ${
-            isGenerating ? 'bg-gray-400' : 'bg-gradient-to-r from-green-600 to-green-700 hover:shadow-xl'
-          }`}
+          className="w-full py-5 rounded-2xl font-black text-white bg-slate-900 hover:bg-red-600 shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 disabled:bg-slate-300"
         >
-          {isGenerating ? <div className="spinner"></div> : <Download className="w-5 h-5" />}
-          {isGenerating ? 'Generating...' : 'Download Graphic'}
+          <Download className="w-6 h-6" /> DOWNLOAD OFFICIAL GRAPHIC
         </button>
+
+        <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4">
+            <AlertTriangle className="text-amber-600 w-10 h-10 flex-shrink-0" />
+            <p className="text-xs font-bold text-amber-800 leading-relaxed">
+                Security Alert: Image uploading is disabled to protect brand integrity. Only facts verified by SattyoAlert can be converted into shareable graphics.
+            </p>
+        </div>
       </div>
 
       {/* PREVIEW */}
-      <div className="bg-gray-100 rounded-3xl p-8 flex items-center justify-center border border-gray-200 shadow-inner">
-        <div className="w-full max-w-md">
-          <div className="flex items-center justify-center gap-2 mb-6 text-gray-500">
-            <Eye className="w-5 h-5" /> <span className="text-sm font-bold">Live Preview</span>
-          </div>
-          
-          <div ref={previewRef} className="shadow-2xl rounded-lg overflow-hidden ring-4 ring-white">
-            <GraphicCard isFixedSize={false} />
-          </div>
-
-          <p className="text-xs text-center mt-6 text-gray-400 flex justify-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> 1080x1080 Social Ready
-          </p>
+      <div className="sticky top-24">
+        <div className="flex items-center justify-center gap-2 mb-6 text-slate-400">
+          <Eye className="w-4 h-4" /> <span className="text-[10px] font-black uppercase tracking-widest">Shareable Preview</span>
+        </div>
+        <div className="max-w-md mx-auto shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)] rounded-[2.5rem] overflow-hidden ring-1 ring-slate-200">
+          <GraphicCard isFixedSize={false} />
         </div>
       </div>
     </div>
@@ -313,17 +253,21 @@ function GenerateContent() {
 
 export default function GeneratePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Header />
-      <main className="relative max-w-7xl mx-auto px-4 py-8 pb-24">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-white shadow-sm px-4 py-2 rounded-full mb-4 border border-gray-200">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span className="text-gray-700 text-sm font-semibold">Meme Generator</span>
+      <main className="max-w-7xl mx-auto px-4 py-12 pb-32">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 text-center md:text-left">
+          <div>
+            <h2 className="text-5xl font-black text-slate-900 tracking-tighter mb-2">Truth Cards</h2>
+            <p className="text-slate-500 font-bold">Turn verified facts into high-impact social media posts.</p>
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-3">Make Truth Viral</h2>
+          <div className="hidden md:flex gap-2">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse delay-75"></div>
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-150"></div>
+          </div>
         </div>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="text-center font-black">CONNECTING...</div>}>
           <GenerateContent />
         </Suspense>
       </main>
