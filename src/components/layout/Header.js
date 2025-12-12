@@ -1,15 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { requestNotificationPermission } from '@/lib/firebase/config';
 import { toast } from 'react-hot-toast';
-import { Bell, Shield, AlertCircle } from 'lucide-react';
+import { Bell, Shield } from 'lucide-react';
 
 export default function Header() {
-  const pathname = usePathname();
-  const isAdmin = pathname === '/admin';
-
+  
   const handleEnableAlerts = async () => {
     const token = await requestNotificationPermission();
     
@@ -47,16 +44,7 @@ export default function Header() {
           </Link>
           
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Admin Link */}
-            {!isAdmin && (
-              <Link
-                href="/admin"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50 transition-all duration-300 font-semibold text-sm border-2 border-transparent hover:border-red-200"
-              >
-                <Shield className="w-4 h-4" />
-                <span>Admin</span>
-              </Link>
-            )}
+            {/* ADMIN LINK REMOVED FROM HERE */}
             
             {/* Enable Alerts Button */}
             <button 

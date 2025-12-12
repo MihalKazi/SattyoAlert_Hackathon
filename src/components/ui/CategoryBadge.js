@@ -1,6 +1,8 @@
+import { Vote, Moon, DollarSign, HeartPulse, FileText } from 'lucide-react';
+
 export default function CategoryBadge({ category }) {
   
-  // Mapping Firebase category ('election', 'religious', etc.) to display text
+  // Mapping Firebase category to display text
   const getCategoryName = (cat) => {
     if (cat === 'election') return 'নির্বাচন';
     if (cat === 'religious') return 'ধর্মীয়';
@@ -11,43 +13,33 @@ export default function CategoryBadge({ category }) {
 
   const categoryConfig = {
     election: {
-      bg: 'bg-red-50',
-      text: 'text-red-700',
-      border: 'border-red-200',
-      icon: '🗳️'
+      color: 'bg-red-50 text-red-700 border-red-200',
+      icon: Vote
     },
     religious: {
-      bg: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
-      icon: '🕌'
+      color: 'bg-orange-50 text-orange-700 border-orange-200',
+      icon: Moon 
     },
     scam: {
-      bg: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
-      icon: '💰'
+      color: 'bg-blue-50 text-blue-700 border-blue-200',
+      icon: DollarSign
     },
     health: {
-      bg: 'bg-green-50',
-      text: 'text-green-700',
-      border: 'border-green-200',
-      icon: '🏥'
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      icon: HeartPulse
     },
-    // Default for any unknown category
     'default': {
-      bg: 'bg-gray-50',
-      text: 'text-gray-700',
-      border: 'border-gray-200',
-      icon: '📰'
+      color: 'bg-slate-50 text-slate-700 border-slate-200',
+      icon: FileText
     }
   };
 
   const config = categoryConfig[category] || categoryConfig['default'];
+  const Icon = config.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border-2 ${config.bg} ${config.text} ${config.border} transition-all duration-300 hover:scale-105`}>
-      <span>{config.icon}</span>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border ${config.color} shadow-sm uppercase tracking-wide`}>
+      <Icon className="w-3 h-3" />
       {getCategoryName(category)}
     </span>
   );
