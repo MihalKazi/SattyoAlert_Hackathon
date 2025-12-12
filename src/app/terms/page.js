@@ -1,215 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { FileCheck, Home, FileText, Palette, BarChart3, Bell, Shield, AlertTriangle, Scale, Lock, Info, AlertCircle } from 'lucide-react';
+import React from 'react';
+import Header from '@/components/layout/Header';
+import BottomNav from '@/components/layout/BottomNav'; // <--- Imports the NEW Floating Nav
+import { Shield, Info, Scale, AlertCircle, AlertTriangle, Lock, FileCheck } from 'lucide-react';
 
-// --- COMPONENTS ---
-
-// 1. Header Component (Red Branding)
-function Header() {
-  const [alertEnabled, setAlertEnabled] = useState(false);
-
-  const handleEnableAlerts = () => {
-    if ('Notification' in window) {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          setAlertEnabled(true);
-          new Notification('🔔 নোটিফিকেশন চালু হয়েছে!', {
-            body: 'আপনি এখন SattyoAlert থেকে আপডেট পাবেন',
-            icon: '/icon.png'
-          });
-        } else {
-          alert('নোটিফিকেশন অনুমতি প্রয়োজন');
-        }
-      });
-    } else {
-      alert('আপনার ব্রাউজার নোটিফিকেশন সমর্থন করে না');
-    }
-  };
-
-  return (
-    <header className="bg-white/95 backdrop-blur-md shadow-lg border-b-4 border-red-600 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo Section */}
-          <a 
-            href="/" 
-            className="flex items-center gap-3 group hover:scale-105 transition-all duration-300"
-          >
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg group-hover:shadow-xl group-hover:rotate-3 transition-all duration-300">
-                <Shield className="w-6 h-6" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent">
-                SattyoAlert
-              </h1>
-              <p className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <span className="text-green-600">🇧🇩</span> সত্য Alert
-              </p>
-            </div>
-          </a>
-          
-          <div className="flex items-center gap-2 md:gap-3">
-            {/* Admin Link */}
-            <a
-              href="/admin"
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50 transition-all duration-300 font-semibold text-sm border-2 border-transparent hover:border-red-200"
-            >
-              <Shield className="w-4 h-4" />
-              <span>Admin</span>
-            </a>
-            
-            {/* Enable Alerts Button */}
-            <button 
-              onClick={handleEnableAlerts}
-              className="group relative px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 font-semibold text-sm flex items-center gap-2"
-            >
-              <Bell className="w-4 h-4 group-hover:animate-pulse" />
-              <span className="hidden md:inline">{alertEnabled ? 'Alerts On' : 'Enable Alerts'}</span>
-              <span className="md:hidden">Alerts</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Animated Progress Bar */}
-      <div className="h-1 bg-gradient-to-r from-red-600 via-green-600 to-red-600 animate-gradient"></div>
-    </header>
-  );
-}
-
-// 2. BottomNav Component (With Scroll Hiding Logic)
-function BottomNav() {
-  const [isVisible, setIsVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  const timeoutRef = useRef(null);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Hide if scrolling down more than 10px and not at the very top
-      if (currentScrollY > lastScrollY.current + 10 && currentScrollY > 50) {
-        setIsVisible(false);
-      } 
-      // Show if scrolling up
-      else if (currentScrollY < lastScrollY.current - 10) {
-        setIsVisible(true);
-      }
-
-      lastScrollY.current = currentScrollY;
-
-      // Clear existing timeout
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-      // Show nav again if scrolling stops for 600ms
-      timeoutRef.current = setTimeout(() => {
-        setIsVisible(true);
-      }, 600);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  const navItems = [
-    { 
-      href: '/', 
-      icon: Home,
-      label: 'হোম',
-      active: false
-    },
-    { 
-      href: '/report', 
-      icon: FileText,
-      label: 'রিপোর্ট',
-      active: false
-    },
-    { 
-      href: '/generate', 
-      icon: Palette,
-      label: 'গ্রাফিক্স',
-      active: false
-    },
-    { 
-      href: '/summary', 
-      icon: BarChart3,
-      label: 'সারসংক্ষেপ',
-      active: false
-    },
-    { 
-      href: '/terms', 
-      icon: FileCheck,
-      label: 'শর্তাবলী',
-      active: true
-    },
-  ];
-
-  return (
-    <nav 
-      className={`fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-2xl z-50 transition-transform duration-500 ease-in-out ${
-        isVisible ? 'translate-y-0' : 'translate-y-full'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-2">
-        <div className="flex justify-around items-center py-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                className={`relative flex flex-col items-center gap-1 px-3 py-2.5 rounded-2xl transition-all duration-300 ${
-                  item.active
-                    ? 'text-red-600 scale-105'
-                    : 'text-gray-500 hover:text-red-600 hover:bg-gray-50'
-                }`}
-              >
-                {item.active && (
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-red-600 to-red-700 rounded-full shadow-lg"></div>
-                )}
-                
-                <div className={`relative p-2 rounded-xl transition-all duration-300 ${
-                  item.active 
-                    ? 'bg-gradient-to-br from-red-50 to-red-100' 
-                    : 'bg-transparent'
-                }`}>
-                  <Icon className={`w-5 h-5 transition-all duration-300 ${
-                    item.active ? 'scale-110' : ''
-                  }`} />
-                  
-                  {item.href === '/report' && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
-                  )}
-                </div>
-                
-                <span className={`text-xs font-semibold transition-all duration-300 ${
-                  item.active ? 'scale-105' : ''
-                }`}>
-                  {item.label}
-                </span>
-              </a>
-            );
-          })}
-        </div>
-      </div>
-      
-      <div className="h-2 bg-white/50"></div>
-    </nav>
-  );
-}
-
-// --- MAIN PAGE COMPONENT ---
 export default function TermsConditions() {
   return (
-    <div className="min-h-screen relative overflow-hidden bg-white pb-24">
+    <div className="min-h-screen relative overflow-hidden bg-white pb-32">
        {/* --- BACKGROUND LAYERS --- */}
        <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-purple-50 z-0"></div>
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-50">
@@ -228,7 +26,7 @@ export default function TermsConditions() {
       <div className="relative z-10">
         <Header />
         
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <main className="max-w-4xl mx-auto p-4 md:p-8">
           <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-6 md:p-12">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent border-b-2 border-red-100 pb-4">
               শর্তাবলী ও দায়মুক্তি (Terms & Conditions)
@@ -423,20 +221,20 @@ export default function TermsConditions() {
                 
                 <div className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
-                     <div>
+                      <div>
                         <p className="font-bold text-gray-900 mb-2">আমরা যা সংগ্রহ করি:</p>
                         <ul className="list-disc list-inside space-y-1 text-sm ml-2">
                           <li>আপনার জমা দেওয়া দাবি (টেক্সট)</li>
                           <li>ঐচ্ছিক: ছবি, URL, বিভাগ</li>
                         </ul>
-                     </div>
-                     <div>
+                      </div>
+                      <div>
                         <p className="font-bold text-gray-900 mb-2">আমরা যা সংগ্রহ করি না:</p>
                         <ul className="list-disc list-inside space-y-1 text-sm ml-2">
                            <li>নাম, ইমেইল, ফোন নম্বর</li>
                            <li>কোনো ব্যক্তিগত পরিচয় তথ্য</li>
                         </ul>
-                     </div>
+                      </div>
                   </div>
 
                   <div className="bg-white p-4 rounded-lg border border-purple-100 mt-2">
@@ -543,7 +341,7 @@ export default function TermsConditions() {
                 </h2>
                 <div className="bg-teal-50 p-4 rounded-lg border border-teal-100">
                    <p className="text-base text-teal-900">
-                      আমরা ১৩ বছরের কম বয়সীদের কোনো ডেটা সংগ্রহ করি না। শিশু যৌন নির্যাতন সামগ্রী (CSAM) আমাদের প্ল্যাটফর্মে কঠোরভাবে নিষিদ্ধ এবং অবিলম্বে রিপোর্ট করা হবে।
+                     আমরা ১৩ বছরের কম বয়সীদের কোনো ডেটা সংগ্রহ করি না। শিশু যৌন নির্যাতন সামগ্রী (CSAM) আমাদের প্ল্যাটফর্মে কঠোরভাবে নিষিদ্ধ এবং অবিলম্বে রিপোর্ট করা হবে।
                    </p>
                 </div>
               </section>
@@ -625,7 +423,7 @@ export default function TermsConditions() {
               </button>
             </div>
           </div>
-        </div>
+        </main>
 
         <BottomNav />
       </div>

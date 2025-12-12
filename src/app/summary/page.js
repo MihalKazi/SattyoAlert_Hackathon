@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo, forwardRef } from 'react';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, query, orderBy, where, Timestamp } from 'firebase/firestore';
 import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
-import DatePicker from "react-datepicker"; // <--- NEW IMPORT
-import "react-datepicker/dist/react-datepicker.css"; // <--- NEW CSS
+import BottomNav from '@/components/layout/BottomNav'; // <--- CHANGED TO BOTTOM NAV
+import DatePicker from "react-datepicker"; 
+import "react-datepicker/dist/react-datepicker.css"; 
 import { 
   ExternalLink, Share2, Eye, AlertTriangle, 
   CheckCircle, XCircle, Loader2, Calendar as CalendarIcon, 
@@ -43,8 +43,6 @@ export default function SummaryPage() {
   };
 
   // --- CUSTOM DATE INPUT BUTTON ---
-  // This component tells React-Datepicker what the "trigger" looks like
-  // We use your existing design here.
   const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
     <div 
       className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg font-bold cursor-pointer border border-red-100 hover:bg-red-100 transition-colors min-w-[160px] justify-center"
@@ -89,7 +87,6 @@ export default function SummaryPage() {
         
         const data = snapshot.docs.map(doc => {
           const raw = doc.data();
-          // Format Date for list items
           let reportDate = 'N/A';
           if (raw.reviewedAt?.toDate) {
              const d = raw.reviewedAt.toDate();
@@ -139,14 +136,12 @@ export default function SummaryPage() {
 
 
   return (
+    // Adjusted padding for BottomNav
     <div className="min-h-screen relative overflow-hidden bg-white pb-24">
       <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-purple-50 z-0"></div>
       
-      {/* CUSTOM CSS FOR THE CALENDAR */}
       <style jsx global>{`
-        .react-datepicker-wrapper {
-          width: auto;
-        }
+        .react-datepicker-wrapper { width: auto; }
         .react-datepicker {
           font-family: inherit;
           border-radius: 1rem;
@@ -167,9 +162,7 @@ export default function SummaryPage() {
           background-color: #fee2e2;
           border-radius: 0.5rem;
         }
-        .react-datepicker__navigation {
-          top: 15px;
-        }
+        .react-datepicker__navigation { top: 15px; }
       `}</style>
 
       <div className="relative z-10">
@@ -190,7 +183,6 @@ export default function SummaryPage() {
 
           {/* --- CONTROLS --- */}
           <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-8">
-            
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button 
                 onClick={() => setViewMode('date')}
@@ -208,25 +200,20 @@ export default function SummaryPage() {
 
             {viewMode === 'date' && (
               <div className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100 relative z-20">
-                
-                <button 
-                  onClick={() => changeDate(-1)}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                >
+                <button onClick={() => changeDate(-1)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                   <ChevronLeft className="w-5 h-5 text-gray-600" />
                 </button>
 
-                {/* --- NEW REACT DATEPICKER --- */}
                 <DatePicker 
                   selected={selectedDate} 
                   onChange={(date) => {
                     setViewMode('date');
                     setSelectedDate(date);
                   }}
-                  customInput={<CustomDateInput />} // Uses our nice button design
-                  popperPlacement="bottom-center" // ALIGNS CENTER TO SITE
+                  customInput={<CustomDateInput />} 
+                  popperPlacement="bottom-center" 
                   dateFormat="dd/MM/yy"
-                  maxDate={new Date()} // Prevent future dates
+                  maxDate={new Date()} 
                 />
 
                 <button 
@@ -240,14 +227,13 @@ export default function SummaryPage() {
             )}
           </div>
 
-          {/* --- CONTENT (Same as before) --- */}
+          {/* --- CONTENT --- */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-10 h-10 animate-spin text-red-600 mb-4" />
               <p className="text-gray-500 font-medium">লোড করা হচ্ছে...</p>
             </div>
           ) : reports.length === 0 ? (
-            
             <div className="text-center py-20 bg-white/60 rounded-2xl border-2 border-dashed border-gray-200">
               <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                 {viewMode === 'all' ? <Globe className="w-8 h-8 text-gray-400" /> : <CalendarIcon className="w-8 h-8 text-gray-400" />}
@@ -257,10 +243,8 @@ export default function SummaryPage() {
                 {viewMode === 'all' ? 'এখনও পর্যন্ত কোনো তথ্য যাচাই করা হয়নি।' : `${formatDateDisplay(selectedDate)} - এই তারিখে কোনো তথ্য যাচাই করা হয়নি।`}
               </p>
             </div>
-
           ) : (
             <div className="animate-fade-in-up">
-              
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <StatCard label="মোট যাচাই" count={stats.total} color="indigo" />
                 <StatCard label="মিথ্যা দাবি" count={stats.falseCount} color="red" />
@@ -302,19 +286,18 @@ export default function SummaryPage() {
                   </span>
                 </p>
               </div>
-
             </div>
           )}
-
         </main>
+        
+        {/* --- USING BOTTOM NAV HERE --- */}
         <BottomNav />
       </div>
     </div>
   );
 }
 
-// --- SUB COMPONENTS ---
-
+// --- SUB COMPONENTS (UNCHANGED) ---
 const StatCard = ({ label, count, color }) => (
   <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm border border-${color}-100`}>
     <div className={`text-3xl font-bold text-${color}-600 mb-1`}>{count}</div>
