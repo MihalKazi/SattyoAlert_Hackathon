@@ -10,11 +10,12 @@ import {
   limit, 
   doc, 
   getDoc,
-  getCountFromServer // <--- NEW IMPORT FOR COUNTING
+  getCountFromServer // Critical for live stats
 } from 'firebase/firestore'; 
 import Link from 'next/link';
 import { Search, Palette, X, TrendingUp } from 'lucide-react';
 
+// --- COMPONENTS ---
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav'; 
 import FactCheckCard from '@/components/fact-checks/FactCheckCard'; 
@@ -23,22 +24,24 @@ import SkeletonCard from '@/components/ui/SkeletonCard';
 import NewsTicker from '@/components/ui/NewsTicker'; 
 
 export default function Home() {
+  // --- STATE ---
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentCategory, setCurrentCategory] = useState('all');
 
-  // --- DYNAMIC CONTROL STATE ---
+  // --- DYNAMIC DATA STATE ---
   const [tickerItems, setTickerItems] = useState([]); 
   const [trendingTags, setTrendingTags] = useState(['নির্বাচন', 'বন্যা', 'শিক্ষা']);
   
-  // --- REAL DB STATS STATE (New) ---
+  // Stats State (Default 0 until loaded)
   const [dbStats, setDbStats] = useState({
     total: 0,
     falseCount: 0,
     trueCount: 0
   });
 
+  // --- HELPERS ---
   const getDomain = (url) => {
     try {
       const domain = new URL(url).hostname;
@@ -48,6 +51,7 @@ export default function Home() {
     }
   };
 
+  // Maps database categories (eng) to search terms (bn)
   const getBnCategory = (cat) => {
     if (!cat) return '';
     const lowerCat = cat.toLowerCase();
@@ -64,11 +68,12 @@ export default function Home() {
     return map[lowerCat] || '';
   };
 
+  // --- DATA FETCHING ---
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // --- 1. FETCH RECENT REPORTS (For the Feed) ---
+        // 1. Fetch Latest Reports (Limit 50 for performance)
         const q = query(
           collection(db, 'reports'),
           where('status', 'in', ['verified', 'false', 'misleading']),
@@ -79,6 +84,7 @@ export default function Home() {
         
         querySnapshot.forEach((doc) => {
           const rawData = doc.data();
+          // Normalize category for filtering
           const normalizedCategory = (rawData.category || 'other').toLowerCase();
 
           data.push({
@@ -87,29 +93,21 @@ export default function Home() {
             category: normalizedCategory,
             source: getDomain(rawData.verifiedSourceUrl || rawData.sourceUrl),
             date: rawData.reviewedAt, 
-            views: Math.floor(Math.random() * 5000) + 500,
+            views: Math.floor(Math.random() * 5000) + 500, // Mock view count
             shares: Math.floor(Math.random() * 1000) + 100
           });
         });
         
+        // Sort by Date (Newest First)
         data.sort((a, b) => (b.date?.toDate?.() || 0) - (a.date?.toDate?.() || 0));
         setReports(data);
 
-        // --- 2. FETCH REAL COUNTS (The Magic Part) ---
-        // This counts ALL documents in DB, not just the 50 loaded above
+        // 2. Fetch REAL Database Counts (Server Side Count)
         const coll = collection(db, 'reports');
         
-        // Count Total
-        const qTotal = query(coll, where('status', 'in', ['verified', 'false', 'misleading']));
-        const snapTotal = await getCountFromServer(qTotal);
-        
-        // Count False
-        const qFalse = query(coll, where('status', '==', 'false'));
-        const snapFalse = await getCountFromServer(qFalse);
-        
-        // Count Verified (True)
-        const qTrue = query(coll, where('status', '==', 'verified'));
-        const snapTrue = await getCountFromServer(qTrue);
+        const snapTotal = await getCountFromServer(query(coll, where('status', 'in', ['verified', 'false', 'misleading'])));
+        const snapFalse = await getCountFromServer(query(coll, where('status', '==', 'false')));
+        const snapTrue = await getCountFromServer(query(coll, where('status', '==', 'verified')));
 
         setDbStats({
           total: snapTotal.data().count,
@@ -117,7 +115,7 @@ export default function Home() {
           trueCount: snapTrue.data().count
         });
 
-        // --- 3. FETCH SETTINGS (Ticker & Tags) ---
+        // 3. Fetch Admin Settings (Ticker & Tags)
         const docRef = doc(db, "settings", "public_config");
         const docSnap = await getDoc(docRef);
 
@@ -137,12 +135,16 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // --- SMART FILTER ---
   const filteredReports = reports.filter(r => {
+    // 1. Category Filter
     const matchesCategory = currentCategory === 'all' || r.category === currentCategory;
+    
+    // 2. Search Filter (Checks Title, Verdict, Source, and Category)
     const q = searchTerm.toLowerCase().trim();
     if (!q) return matchesCategory;
 
-    const categoryBn = getBnCategory(r.category);
+    const categoryBn = getBnCategory(r.category); // Convert 'election' -> 'নির্বাচন'
 
     const matchesSearch = 
       (r.claim && r.claim.toLowerCase().includes(q)) ||       
@@ -155,16 +157,19 @@ export default function Home() {
   });
 
   return (
+    // pb-32 prevents content from hiding behind the Bottom Nav
     <div className="min-h-screen bg-slate-50 pb-32 font-sans relative"> 
       <Header />
       
+      {/* 1. News Ticker (Shows only if data exists) */}
       {tickerItems.length > 0 && <NewsTicker items={tickerItems} />}
 
-      {/* HERO SECTION */}
+      {/* 2. Hero Section */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm pt-4 pb-4 md:pt-6 md:pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-end gap-4 md:gap-6 mb-4">
             
+            {/* Branding */}
             <div className="w-full md:w-auto">
                <div className="flex items-center gap-2 mb-2">
                  <div className="bg-red-50 px-3 py-1 rounded-full flex items-center gap-2 border border-red-100">
@@ -180,6 +185,7 @@ export default function Home() {
                </h1>
             </div>
 
+            {/* Search Input */}
             <div className="w-full md:w-96 relative">
               <input 
                 type="text" 
@@ -197,6 +203,7 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Trending Tags */}
           <div className="flex flex-wrap gap-2 items-center text-sm animate-fade-in">
             <span className="text-slate-500 font-medium flex items-center gap-1 text-xs md:text-sm">
               <TrendingUp className="w-3 h-3 md:w-4 md:h-4" /> জনপ্রিয়:
@@ -214,26 +221,23 @@ export default function Home() {
         </div>
       </div>
       
-      {/* 3. DYNAMIC LIVE STATS DASHBOARD */}
+      {/* 3. Live Stats Dashboard (Real DB Counts) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4 md:mt-6">
          <div className="grid grid-cols-3 gap-2 md:gap-4 bg-white p-3 md:p-6 rounded-2xl shadow-sm border border-slate-100">
             <div className="text-center border-r border-slate-100">
               <p className="text-xl md:text-3xl font-black text-slate-900">
-                {/* Shows real total from DB */}
                 {loading ? '...' : dbStats.total.toLocaleString()}
               </p>
               <p className="text-[9px] md:text-xs text-slate-500 uppercase tracking-wider font-bold mt-1">মোট যাচাই</p>
             </div>
             <div className="text-center border-r border-slate-100">
               <p className="text-xl md:text-3xl font-black text-red-600">
-                {/* Shows real false count from DB */}
                 {loading ? '...' : dbStats.falseCount.toLocaleString()}
               </p>
               <p className="text-[9px] md:text-xs text-red-500 uppercase tracking-wider font-bold mt-1">মিথ্যা প্রমাণ</p>
             </div>
             <div className="text-center">
               <p className="text-xl md:text-3xl font-black text-green-600">
-                {/* Shows real verified count from DB */}
                 {loading ? '...' : dbStats.trueCount.toLocaleString()}
               </p>
               <p className="text-[9px] md:text-xs text-green-500 uppercase tracking-wider font-bold mt-1">সত্য তথ্য</p>
@@ -241,10 +245,12 @@ export default function Home() {
          </div>
       </div>
       
+      {/* 4. Category Filter */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
         <CategoryFilter currentCategory={currentCategory} onCategoryChange={setCurrentCategory} />
       </div>
 
+      {/* 5. Main Feed Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -282,6 +288,7 @@ export default function Home() {
         )}
       </div>
 
+      {/* 6. Floating Navigation */}
       <BottomNav />
     </div>
   ); 
