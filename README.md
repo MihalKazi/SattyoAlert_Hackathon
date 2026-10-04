@@ -131,3 +131,4 @@ vercel
 This project is **open-source** under the [MIT License](https://opensource.org/licenses/MIT).
 
 **Live site:** https://sattyo-alert-hackathon.vercel.app
+
